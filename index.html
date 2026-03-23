@@ -371,10 +371,10 @@ const USERS = {
 
 // ── บัญชี Login ──
 // ── บัญชี Login ──
-// role: 'sale'       = เห็นเฉพาะที่ตัวเองยื่น (กรองด้วย sale_agent)
+// role: 'sale'       = เห็นเฉพาะที่ตัวเองยื่น (label ต้องตรงกับชื่อที่กรอกในช่อง "ชื่อ Sale")
 //       'manager'    = เห็นทั้งหมด + อนุมัติได้
 //       'cmo'        = เห็นทั้งหมด + อนุมัติได้
-//       'accounting' = เห็นเฉพาะที่อนุมัติแล้ว (status = approved)
+//       'accounting' = เห็นเฉพาะที่อนุมัติแล้ว ดูได้อย่างเดียว
 const LOGIN_ACCOUNTS = [
   { username:'sale1',       password:'sale1234',  label:'Sale 1',                role:'sale'       },
   { username:'sale2',       password:'sale5678',  label:'Sale 2',                role:'sale'       },
@@ -382,6 +382,7 @@ const LOGIN_ACCOUNTS = [
   { username:'cmo',         password:'cmo5678',   label:'นายสกุลชัย ดันตระบัณฑิตย์', role:'cmo'   },
   { username:'accounting',  password:'acc1234',   label:'Accounting',            role:'accounting' },
 ]
+// ⚠️ หมายเหตุ: label ของ Sale ต้องตรงกับชื่อที่กรอกในช่อง "ชื่อ Sale" ในฟอร์มทุกครั้ง
 
 // helper: กรองข้อมูลตาม role
 function filterByRole(data) {
@@ -389,8 +390,10 @@ function filterByRole(data) {
   var role = currentUser.role
   if (role === 'manager' || role === 'cmo') return data
   if (role === 'accounting') return data.filter(function(r) { return r.status === 'approved' })
-  // sale — เห็นเฉพาะที่ตัวเองยื่น (match จาก sale_agent)
-  return data.filter(function(r) { return r.sale_agent === currentUser.label })
+  // sale — เห็นเฉพาะที่ตัวเองยื่น (match จาก sale_agent หรือ label)
+  return data.filter(function(r) {
+    return r.sale_agent === currentUser.label || r.sale_agent === currentUser.username
+  })
 }
 
 // helper: สิทธิ์อนุมัติ
@@ -597,8 +600,6 @@ function sendEmail(r) {
   const tl = { mixed:'รายการรวม', room:'ส่วนลดห้องพัก', procedure:'ส่วนลดหัตถการ', gift:'ของแถม/สิทธิพิเศษ' }
   const ap = getApprover(r.discount_pct || 0)
 
-  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY })
-
   var params = {
     to_email:        ap.email,
     to_role:         ap.role,
@@ -680,7 +681,7 @@ function buildDetailHtml(r) {
   var d = r.doc_data || {}, items = d.items || []
   var isGift = r.doc_type === 'gift'
   var ap = getApprover(r.discount_pct || 0)
-  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลดหลายรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   // Meta grid
   var metaHtml =
@@ -935,7 +936,7 @@ function printDoc(id) {
   const thDate = today.getDate() + ' ' + months[today.getMonth()] + ' ' + (today.getFullYear()+543)
   const isA = r.status === 'approved', isR = r.status === 'rejected', isGift = r.doc_type === 'gift'
   const ap = getApprover(r.discount_pct || 0)
-  const titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  const titles = { mixed:'ขออนุมัติส่วนลดหลายรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   const LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
   const tbl = items.length > 0 && !isGift
@@ -1121,18 +1122,25 @@ function showApp() {
   if (fbtnPending)  fbtnPending.style.display  = (role === 'accounting') ? 'none' : ''
   if (fbtnRejected) fbtnRejected.style.display = (role === 'accounting') ? 'none' : ''
 
-  // Accounting: ซ่อน tab ยื่นคำขอ และ switch ไปหน้า approve เลย
+  // Auto-fill ชื่อ Sale ในฟอร์มถ้าเป็น role sale
+  if (role === 'sale') {
+    var saleInput = document.getElementById('f-sale')
+    if (saleInput && currentUser) saleInput.value = currentUser.label
+  }
+
+  // Tab visibility ตาม role
   if (role === 'accounting') {
+    // Accounting: เห็นแค่หน้าอนุมัติ/ติดตาม
     if (formTab) formTab.style.display = 'none'
     switchTab('approve')
-  } else {
+  } else if (role === 'manager' || role === 'cmo') {
+    // Manager/CMO: เห็นทั้ง 2 tab, default ไปหน้าอนุมัติ
     if (formTab) formTab.style.display = ''
-    // Manager/CMO: default ไปหน้า approve
-    if (role === 'manager' || role === 'cmo') {
-      switchTab('approve')
-    } else {
-      switchTab('form')
-    }
+    switchTab('approve')
+  } else {
+    // Sale: เห็นทั้ง 2 tab, default ไปหน้ายื่นคำขอ
+    if (formTab) formTab.style.display = ''
+    switchTab('form')
   }
 }
 
@@ -1146,6 +1154,7 @@ function logout() {
 }
 
 // ── INIT ──
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY })
 setTimeout(initSigPad, 100)
 setTimeout(initCreatorPad, 100)
 setTimeout(initLoginLogo, 200)
