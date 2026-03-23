@@ -389,26 +389,36 @@ function filterByRole(data) {
   if (!currentUser) return []
   var role = currentUser.role
   if (role === 'sale') {
-    // Sale เห็นทั้งหมด แต่ไม่มีปุ่มอนุมัติ
+    // Sale เห็นทั้งหมด ดูอย่างเดียว
     return data
   }
   if (role === 'manager') {
-    // Manager เห็นเฉพาะส่วนลด ≤ DISCOUNT_THRESHOLD (ที่ตัวเองต้องอนุมัติ)
-    return data.filter(function(r) { return (r.discount_pct || 0) <= DISCOUNT_THRESHOLD })
+    // Manager เห็นทั้งหมด:
+    // - ≤10% = ที่ตัวเองต้องอนุมัติ
+    // - >10% = ที่ตัวเองจัดทำแล้วส่ง CMO
+    return data
   }
   if (role === 'cmo') {
-    // CMO เห็นเฉพาะส่วนลด > DISCOUNT_THRESHOLD (ที่ตัวเองต้องอนุมัติ)
+    // CMO เห็นเฉพาะ >10% (ที่ตัวเองต้องอนุมัติ)
     return data.filter(function(r) { return (r.discount_pct || 0) > DISCOUNT_THRESHOLD })
   }
   if (role === 'accounting') {
-    // Accounting เห็นเฉพาะที่อนุมัติแล้ว
     return data.filter(function(r) { return r.status === 'approved' })
   }
   return data
 }
 
 // helper: สิทธิ์อนุมัติ
-function canApprove() { return currentUser && (currentUser.role === 'manager' || currentUser.role === 'cmo') }
+function canApprove(r) {
+  if (!currentUser || !r) return false
+  var role = currentUser.role
+  var pct  = r.discount_pct || 0
+  // Manager อนุมัติได้เฉพาะ ≤ threshold
+  if (role === 'manager') return pct <= DISCOUNT_THRESHOLD
+  // CMO อนุมัติได้เฉพาะ > threshold
+  if (role === 'cmo') return pct > DISCOUNT_THRESHOLD
+  return false
+}
 // ── EmailJS ──
 const EMAILJS_SERVICE_ID  = 'service_k3m1kzl'
 const EMAILJS_TEMPLATE_ID = 'template_o5c9od9'
@@ -651,16 +661,14 @@ async function loadReqs() {
   }
   var query = sb.from('approval_requests').select('*').order('created_at', { ascending: false })
   var role = currentUser ? currentUser.role : ''
-  if (role === 'manager') {
-    // Manager: เห็นเฉพาะส่วนลด ≤ threshold
-    query = query.lte('discount_pct', DISCOUNT_THRESHOLD)
-  } else if (role === 'cmo') {
+  if (role === 'cmo') {
     // CMO: เห็นเฉพาะส่วนลด > threshold
     query = query.gt('discount_pct', DISCOUNT_THRESHOLD)
   } else if (role === 'accounting') {
     // Accounting: เห็นเฉพาะ approved
     query = query.eq('status', 'approved')
   }
+  // sale, manager: ดึงทั้งหมด
   const { data, error } = await query
   if (!error) { allReqs = data; renderList(); updateCounts() }
 }
@@ -806,7 +814,7 @@ function renderList() {
       '</div>' +
       '<div class="detail-panel" id="dp-' + r.id + '">' + buildDetailHtml(r) + '</div>' +
       '<div class="card-acts">' +
-        (r.status === 'pending' && canApprove()
+        (r.status === 'pending' && canApprove(r)
           ? '<button class="btn-approve" onclick="openApprove(\'' + r.id + '\')">✍️ เซ็นอนุมัติ</button><button class="btn-reject" onclick="rejectReq(\'' + r.id + '\')">✗ ไม่อนุมัติ</button>'
           : r.status === 'pending'
             ? '<span style="font-size:12px;color:var(--muted);padding:4px 0;">⏳ รอการอนุมัติ</span>'
@@ -878,6 +886,7 @@ function updatePinDots() {
 // ── APPROVE ──
 function openApprove(id) {
   const r = allReqs.find(function(x) { return x.id === id }); if (!r) return
+  if (!canApprove(r)) { showToast('⚠️ ไม่มีสิทธิ์อนุมัติรายการนี้'); return }
   const pct = r.discount_pct || 0
   const userKey = pct <= DISCOUNT_THRESHOLD ? 'sale_mgr' : 'cmo'
   const ap = USERS[userKey]
