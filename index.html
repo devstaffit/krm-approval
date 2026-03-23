@@ -6,6 +6,7 @@
 <title>KRM – ระบบขออนุมัติส่วนลด</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{--gold:#B8955A;--gold-l:#D4AF7A;--gold-d:#8A6C3A;--navy:#1A2540;--navy2:#243052;--cream:#FAF7F2;--cream2:#F0EBE0;--text:#2C2C2C;--muted:#7A7A7A;--border:#D9CEB8;--success:#1E6E47;--danger:#C0392B;--sh:0 4px 24px rgba(26,37,64,.10);}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -364,7 +365,7 @@ const SUPABASE_KEY        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 const DISCOUNT_THRESHOLD  = 10
 
 const USERS = {
-  sale_mgr: { name:'นภา ชำนาญรบ',               role:'Sale Manager',            email:'Salesurgery@krmhospital-inter.com',  pin:'1234' },
+  sale_mgr: { name:'นภา ชำนาญรบ',               role:'Sale Manager',            email:'nanthiphat.cha@krmhospital-inter.com',  pin:'1234' },
   cmo:      { name:'นายสกุลชัย ดันตระบัณฑิตย์',  role:'Chief Marketing Officer', email:'Sakulchai.t@krmhospital-inter.com',  pin:'5678' },
 }
 
@@ -394,6 +395,11 @@ function filterByRole(data) {
 
 // helper: สิทธิ์อนุมัติ
 function canApprove() { return currentUser && (currentUser.role === 'manager' || currentUser.role === 'cmo') }
+// ── EmailJS ──
+const EMAILJS_SERVICE_ID  = 'service_k3m1kzl'
+const EMAILJS_TEMPLATE_ID = 'template_xvvs8n5'
+const EMAILJS_PUBLIC_KEY  = 'M3GFyEbVcO48C7wy0'
+const APP_URL             = window.location.origin + window.location.pathname
 // ════════════════════════════════════════════════
 
 const isConfigured = !SUPABASE_URL.includes('YOUR_PROJECT')
@@ -590,12 +596,29 @@ async function submitRequest() {
 function sendEmail(r) {
   const tl = { mixed:'รายการรวม', room:'ส่วนลดห้องพัก', procedure:'ส่วนลดหัตถการ', gift:'ของแถม/สิทธิพิเศษ' }
   const ap = getApprover(r.discount_pct || 0)
-  const routeNote = r.discount_pct <= DISCOUNT_THRESHOLD
-    ? '[ส่วนลด ' + r.discount_pct + '% ≤ ' + DISCOUNT_THRESHOLD + '% → ' + USERS.sale_mgr.role + ' อนุมัติ]'
-    : '[ส่วนลด ' + r.discount_pct + '% > ' + DISCOUNT_THRESHOLD + '% → CMO อนุมัติ]'
-  const subj = encodeURIComponent('[KRM] ขออนุมัติ' + tl[r.doc_type] + ' — ' + r.customer_name + ' HN' + r.hn)
-  const body = encodeURIComponent(routeNote + '\n\nขออนุมัติ' + tl[r.doc_type] + '\nลูกค้า: ' + r.customer_name + ' HN: ' + r.hn + '\nยื่นโดย: ' + r.sale_agent + '\nส่วนลด: ' + r.discount_pct + '%  ยอดสุทธิ: ' + fmt(r.final_price) + ' บาท\nเปิดระบบ: ' + location.href + '\nID: ' + r.id)
-  window.open('mailto:' + ap.email + '?subject=' + subj + '&body=' + body)
+
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY })
+
+  var params = {
+    to_email:        ap.email,
+    to_role:         ap.role,
+    doc_type:        tl[r.doc_type] || r.doc_type,
+    customer_name:   r.customer_name,
+    hn:              r.hn,
+    sale_agent:      r.sale_agent,
+    discount_pct:    (r.discount_pct || 0) + '%',
+    discount_amount: fmt(r.discount_amount || 0) + ' ฿',
+    final_price:     fmt(r.final_price || 0) + ' ฿',
+    reason:          r.reason || '–',
+    app_url:         APP_URL,
+  }
+
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
+    .then(function() { showToast('📧 ส่ง email แจ้ง ' + ap.role + ' แล้ว') })
+    .catch(function(err) {
+      console.error('EmailJS error:', err)
+      showToast('⚠️ ส่ง email ไม่สำเร็จ: ' + (err.text || err))
+    })
 }
 
 function resetForm() {
@@ -657,7 +680,7 @@ function buildDetailHtml(r) {
   var d = r.doc_data || {}, items = d.items || []
   var isGift = r.doc_type === 'gift'
   var ap = getApprover(r.discount_pct || 0)
-  var titles = { mixed:'ขออนุมัติส่วนลดหลายรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   // Meta grid
   var metaHtml =
@@ -912,7 +935,7 @@ function printDoc(id) {
   const thDate = today.getDate() + ' ' + months[today.getMonth()] + ' ' + (today.getFullYear()+543)
   const isA = r.status === 'approved', isR = r.status === 'rejected', isGift = r.doc_type === 'gift'
   const ap = getApprover(r.discount_pct || 0)
-  const titles = { mixed:'ขออนุมัติส่วนลดหลายรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  const titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   const LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
   const tbl = items.length > 0 && !isGift
