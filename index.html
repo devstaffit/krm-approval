@@ -389,8 +389,8 @@ function filterByRole(data) {
   if (!currentUser) return []
   var role = currentUser.role
   if (role === 'sale') {
-    // Sale เห็นเฉพาะที่ตัวเองยื่น
-    return data.filter(function(r) { return r.sale_agent === currentUser.label })
+    // Sale เห็นทั้งหมด แต่ไม่มีปุ่มอนุมัติ
+    return data
   }
   if (role === 'manager') {
     // Manager เห็นเฉพาะส่วนลด ≤ DISCOUNT_THRESHOLD (ที่ตัวเองต้องอนุมัติ)
@@ -651,10 +651,7 @@ async function loadReqs() {
   }
   var query = sb.from('approval_requests').select('*').order('created_at', { ascending: false })
   var role = currentUser ? currentUser.role : ''
-  if (role === 'sale' && currentUser) {
-    // Sale: กรองที่ DB โดย sale_agent
-    query = query.eq('sale_agent', currentUser.label)
-  } else if (role === 'manager') {
+  if (role === 'manager') {
     // Manager: เห็นเฉพาะส่วนลด ≤ threshold
     query = query.lte('discount_pct', DISCOUNT_THRESHOLD)
   } else if (role === 'cmo') {
