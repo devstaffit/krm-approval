@@ -388,10 +388,22 @@ const LOGIN_ACCOUNTS = [
 function filterByRole(data) {
   if (!currentUser) return []
   var role = currentUser.role
-  // sale, manager, cmo เห็นทั้งหมด
-  if (role === 'sale' || role === 'manager' || role === 'cmo') return data
-  // accounting เห็นเฉพาะที่อนุมัติแล้ว
-  if (role === 'accounting') return data.filter(function(r) { return r.status === 'approved' })
+  if (role === 'sale') {
+    // Sale เห็นเฉพาะที่ตัวเองยื่น
+    return data.filter(function(r) { return r.sale_agent === currentUser.label })
+  }
+  if (role === 'manager') {
+    // Manager เห็นเฉพาะส่วนลด ≤ DISCOUNT_THRESHOLD (ที่ตัวเองต้องอนุมัติ)
+    return data.filter(function(r) { return (r.discount_pct || 0) <= DISCOUNT_THRESHOLD })
+  }
+  if (role === 'cmo') {
+    // CMO เห็นเฉพาะส่วนลด > DISCOUNT_THRESHOLD (ที่ตัวเองต้องอนุมัติ)
+    return data.filter(function(r) { return (r.discount_pct || 0) > DISCOUNT_THRESHOLD })
+  }
+  if (role === 'accounting') {
+    // Accounting เห็นเฉพาะที่อนุมัติแล้ว
+    return data.filter(function(r) { return r.status === 'approved' })
+  }
   return data
 }
 
@@ -639,11 +651,19 @@ async function loadReqs() {
   }
   var query = sb.from('approval_requests').select('*').order('created_at', { ascending: false })
   var role = currentUser ? currentUser.role : ''
-  // Accounting เท่านั้น: กรองเฉพาะ approved
-  if (role === 'accounting') {
+  if (role === 'sale' && currentUser) {
+    // Sale: กรองที่ DB โดย sale_agent
+    query = query.eq('sale_agent', currentUser.label)
+  } else if (role === 'manager') {
+    // Manager: เห็นเฉพาะส่วนลด ≤ threshold
+    query = query.lte('discount_pct', DISCOUNT_THRESHOLD)
+  } else if (role === 'cmo') {
+    // CMO: เห็นเฉพาะส่วนลด > threshold
+    query = query.gt('discount_pct', DISCOUNT_THRESHOLD)
+  } else if (role === 'accounting') {
+    // Accounting: เห็นเฉพาะ approved
     query = query.eq('status', 'approved')
   }
-  // Sale, Manager, CMO: เห็นทั้งหมด (canApprove ควบคุมปุ่มอนุมัติแทน)
   const { data, error } = await query
   if (!error) { allReqs = data; renderList(); updateCounts() }
 }
@@ -671,7 +691,7 @@ function buildDetailHtml(r) {
   var d = r.doc_data || {}, items = d.items || []
   var isGift = r.doc_type === 'gift'
   var ap = getApprover(r.discount_pct || 0)
-  var titles = { mixed:'ขออนุมัติส่วนรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   // Meta grid
   var metaHtml =
