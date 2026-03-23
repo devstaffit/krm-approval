@@ -388,12 +388,11 @@ const LOGIN_ACCOUNTS = [
 function filterByRole(data) {
   if (!currentUser) return []
   var role = currentUser.role
-  if (role === 'manager' || role === 'cmo') return data
+  // sale, manager, cmo เห็นทั้งหมด
+  if (role === 'sale' || role === 'manager' || role === 'cmo') return data
+  // accounting เห็นเฉพาะที่อนุมัติแล้ว
   if (role === 'accounting') return data.filter(function(r) { return r.status === 'approved' })
-  // sale — เห็นเฉพาะที่ตัวเองยื่น (match จาก sale_agent หรือ label)
-  return data.filter(function(r) {
-    return r.sale_agent === currentUser.label || r.sale_agent === currentUser.username
-  })
+  return data
 }
 
 // helper: สิทธิ์อนุมัติ
@@ -635,25 +634,16 @@ function resetForm() {
 // ── LOAD / RENDER ──
 async function loadReqs() {
   if (!isConfigured) {
-    // Demo mode: กรอง in-memory
-    var all = allReqs
-    var filtered = filterByRole(all)
-    // ชั่วคราว set allReqs เพื่อ render แล้วคืนค่า
-    allReqs = filtered
     renderList(); updateCounts()
-    allReqs = all
     return
   }
   var query = sb.from('approval_requests').select('*').order('created_at', { ascending: false })
   var role = currentUser ? currentUser.role : ''
-  // Sale: กรองที่ DB โดย sale_agent ตรงกับ label
-  if (role === 'sale' && currentUser) {
-    query = query.eq('sale_agent', currentUser.label)
-  }
-  // Accounting: กรองเฉพาะ approved
+  // Accounting เท่านั้น: กรองเฉพาะ approved
   if (role === 'accounting') {
     query = query.eq('status', 'approved')
   }
+  // Sale, Manager, CMO: เห็นทั้งหมด (canApprove ควบคุมปุ่มอนุมัติแทน)
   const { data, error } = await query
   if (!error) { allReqs = data; renderList(); updateCounts() }
 }
@@ -681,7 +671,7 @@ function buildDetailHtml(r) {
   var d = r.doc_data || {}, items = d.items || []
   var isGift = r.doc_type === 'gift'
   var ap = getApprover(r.discount_pct || 0)
-  var titles = { mixed:'ขออนุมัติส่วนลดหลายรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   // Meta grid
   var metaHtml =
@@ -936,7 +926,7 @@ function printDoc(id) {
   const thDate = today.getDate() + ' ' + months[today.getMonth()] + ' ' + (today.getFullYear()+543)
   const isA = r.status === 'approved', isR = r.status === 'rejected', isGift = r.doc_type === 'gift'
   const ap = getApprover(r.discount_pct || 0)
-  const titles = { mixed:'ขออนุมัติส่วนลดหลายรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  const titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   const LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
   const tbl = items.length > 0 && !isGift
@@ -1122,12 +1112,6 @@ function showApp() {
   if (fbtnPending)  fbtnPending.style.display  = (role === 'accounting') ? 'none' : ''
   if (fbtnRejected) fbtnRejected.style.display = (role === 'accounting') ? 'none' : ''
 
-  // Auto-fill ชื่อ Sale ในฟอร์มถ้าเป็น role sale
-  if (role === 'sale') {
-    var saleInput = document.getElementById('f-sale')
-    if (saleInput && currentUser) saleInput.value = currentUser.label
-  }
-
   // Tab visibility ตาม role
   if (role === 'accounting') {
     // Accounting: เห็นแค่หน้าอนุมัติ/ติดตาม
@@ -1138,7 +1122,7 @@ function showApp() {
     if (formTab) formTab.style.display = ''
     switchTab('approve')
   } else {
-    // Sale: เห็นทั้ง 2 tab, default ไปหน้ายื่นคำขอ
+    // Sale: เห็นทั้ง 2 tab (ยื่นคำขอ + ติดตาม), default ที่ form
     if (formTab) formTab.style.display = ''
     switchTab('form')
   }
