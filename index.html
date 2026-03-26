@@ -38,7 +38,6 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .form-section{display:none;}.form-section.active{display:block;}
 .items-wrap{overflow-x:auto;margin-top:4px;}
 .items-table{width:100%;border-collapse:collapse;min-width:540px;}
-/* แก้ไขสีหัวตารางหน้ากรอกข้อมูลให้เป็นสีดำ-ขาว */
 .items-table th{background:#000;color:#fff;font-size:11px;font-weight:600;padding:9px 10px;text-align:left;letter-spacing:.04em;white-space:nowrap;}
 .items-table th:first-child{border-radius:7px 0 0 7px;}.items-table th:last-child{border-radius:0 7px 7px 0;text-align:center;}
 .items-table td{padding:5px 5px;border-bottom:1px solid var(--cream2);vertical-align:middle;}
@@ -1086,49 +1085,64 @@ function printDoc(id) {
   var ap = getApprover(r.discount_pct||0)
   var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   var LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
+  
+  // ── ปรับสีตารางในหน้า Print เป็นสีดำ 100% ไม่มีสีเทา/พื้นหลัง ──
   var tbl = items.length>0&&!isGift
-    ? '<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;"><thead><tr style="background:#000;"><th style="padding:7px 9px;color:#ffffff;text-align:left;">รายการ</th><th style="padding:7px 9px;color:#ffffff;text-align:right;">ราคาเต็ม (฿)</th><th style="padding:7px 9px;color:#ffffff;text-align:center;">ส่วนลด %</th><th style="padding:7px 9px;color:#ffffff;text-align:right;">ลูกค้าจ่าย (฿)</th></tr></thead><tbody>' +
-      items.map(function(it,i){ return '<tr><td style="padding:7px 9px;border-bottom:1px solid #000;">'+(it.name||'–')+'</td><td style="padding:7px 9px;text-align:right;border-bottom:1px solid #000;">'+fmt(it.orig)+'</td><td style="padding:7px 9px;text-align:center;border-bottom:1px solid #000;">'+(it.pct>0?it.pct+'%':'–')+'</td><td style="padding:7px 9px;text-align:right;border-bottom:1px solid #000;font-weight:700;">'+fmt(it.final)+'</td></tr>' }).join('') +
-      (items.length>1?'<tr style="background:#000;"><td style="padding:8px 9px;color:#fff;font-weight:700;">รวมทั้งสิ้น</td><td style="padding:8px 9px;color:#fff;text-align:right;font-weight:700;">'+fmt(r.original_price)+'</td><td style="padding:8px 9px;color:#fff;text-align:center;font-size:11px;">เฉลี่ย '+r.discount_pct+'%</td><td style="padding:8px 9px;color:#fff;text-align:right;font-weight:700;font-size:14px;">'+fmt(r.final_price)+'</td></tr>':'') +
+    ? '<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;color:#000;">' +
+      '<thead><tr style="border-bottom:2px solid #000;">' +
+      '<th style="padding:7px 9px;color:#000;text-align:left;font-weight:700;">รายการ</th>' +
+      '<th style="padding:7px 9px;color:#000;text-align:right;font-weight:700;">ราคาเต็ม (฿)</th>' +
+      '<th style="padding:7px 9px;color:#000;text-align:center;font-weight:700;">ส่วนลด %</th>' +
+      '<th style="padding:7px 9px;color:#000;text-align:right;font-weight:700;">ลูกค้าจ่าย (฿)</th>' +
+      '</tr></thead><tbody>' +
+      items.map(function(it,i){ 
+        return '<tr>' +
+               '<td style="padding:7px 9px;border-bottom:1px solid #ccc;color:#000;">'+(it.name||'–')+'</td>' +
+               '<td style="padding:7px 9px;text-align:right;border-bottom:1px solid #ccc;color:#000;">'+fmt(it.orig)+'</td>' +
+               '<td style="padding:7px 9px;text-align:center;border-bottom:1px solid #ccc;color:#000;">'+(it.pct>0?it.pct+'%':'–')+'</td>' +
+               '<td style="padding:7px 9px;text-align:right;border-bottom:1px solid #ccc;font-weight:700;color:#000;">'+fmt(it.final)+'</td>' +
+               '</tr>' 
+      }).join('') +
+      (items.length>1?'<tr style="border-top:2px solid #000;"><td style="padding:8px 9px;color:#000;font-weight:700;">รวมทั้งสิ้น</td><td style="padding:8px 9px;color:#000;text-align:right;font-weight:700;">'+fmt(r.original_price)+'</td><td style="padding:8px 9px;color:#000;text-align:center;font-size:11px;font-weight:700;">เฉลี่ย '+r.discount_pct+'%</td><td style="padding:8px 9px;color:#000;text-align:right;font-weight:700;font-size:14px;">'+fmt(r.final_price)+'</td></tr>':'') +
       '</tbody></table>'
-    : isGift?'<ul style="font-size:13px;padding-left:20px;margin:10px 0;">'+(d.gift_items||[]).map(function(g){return '<li>'+g+'</li>'}).join('')+'</ul>':''
+    : isGift?'<ul style="font-size:13px;padding-left:20px;margin:10px 0;color:#000;">'+(d.gift_items||[]).map(function(g){return '<li>'+g+'</li>'}).join('')+'</ul>':''
+  
   var bodyText = 'เนื่องด้วยทางฝ่ายการตลาดและฝ่ายขาย มีความประสงค์ที่จะ'+titles[r.doc_type]+'ให้กับ <strong>'+r.customer_name+'</strong> HN '+r.hn
   if (d.opdate) bodyText += ' กำหนดวันที่ '+fmtDateTh(d.opdate)
   if (!isGift) bodyText += ' รายละเอียดตามตารางด้านล่าง'
   else bodyText += ' มูลค่ารวมโดยประมาณ '+fmt(d.gift_value||0)+' บาท เหตุผล: '+(d.gift_reason||'–')
   if (r.reason) bodyText += '<br><br>เหตุผลเพิ่มเติม: '+r.reason
   
-  // แกัไขกล่องหมายเหตุในหน้า Print ให้เป็นกรอบสีดำ 100%
-  var noteSection = d.approval_note ? '<div style="margin:12px 0;padding:10px 14px;border:1.5px dashed #000;font-size:12.5px;color:#000;"><strong>หมายเหตุผู้อนุมัติ:</strong><br> '+d.approval_note+'</div>' : ''
+  var noteSection = d.approval_note ? '<div style="margin:12px 0;padding:10px 14px;border:1.5px dashed #000;font-size:12.5px;color:#000;"><strong>หมายเหตุผู้อนุมัติ:</strong><br> '+d.approval_note.replace(/\n/g, '<br>')+'</div>' : ''
   
   document.getElementById('printArea').innerHTML =
     '<div style="font-family:Sarabun,sans-serif;color:#000;padding:36px 46px;max-width:720px;margin:auto;">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;padding-bottom:12px;border-bottom:1.5px solid #000;">' +
-      '<div>'+(LOGO_B64?'<img src="data:image/jpeg;base64,'+LOGO_B64+'" style="height:44px;object-fit:contain;object-position:left;">':'<strong style="font-size:16px;color:#000;">KRM</strong>')+
-      '<div style="font-size:10.5px;color:#3d3d3d;margin-top:4px;line-height:1.7;">โรงพยาบาลเฉพาะทางศัลยกรรมตกแต่งขนาดเล็กเคอาร์เอ็ม<br><span style="color:#555;">บริษัท เคโอเอ็ม คอร์ป จำกัด</span></div></div>' +
+      '<div>'+(LOGO_B64?'<img src="data:image/jpeg;base64,'+LOGO_B64+'" style="height:44px;object-fit:contain;object-position:left;filter:grayscale(100%);">':'<strong style="font-size:16px;color:#000;">KRM</strong>')+
+      '<div style="font-size:10.5px;color:#000;margin-top:4px;line-height:1.7;">โรงพยาบาลเฉพาะทางศัลยกรรมตกแต่งขนาดเล็กเคอาร์เอ็ม<br>บริษัท เคโอเอ็ม คอร์ป จำกัด</div></div>' +
       '<div style="text-align:right;font-size:12px;color:#000;padding-top:4px;">วันที่ '+thDate+'</div></div>' +
-    '<div style="font-size:12.5px;margin-bottom:12px;line-height:2.1;">' +
+    '<div style="font-size:12.5px;margin-bottom:12px;line-height:2.1;color:#000;">' +
       '<div><strong style="display:inline-block;width:66px;">ส่วนงาน</strong>ฝ่ายการตลาดและฝ่ายขาย</div>' +
       '<div><strong style="display:inline-block;width:66px;">เรื่อง</strong>'+titles[r.doc_type]+'</div>' +
       '<div><strong style="display:inline-block;width:66px;">เรียน</strong>ผู้บริหาร/กรรมการ/ผู้จัดการที่มีส่วนเกี่ยวข้อง</div></div>' +
-    '<div style="font-size:13px;line-height:2.1;text-indent:2.5em;margin-bottom:8px;text-align:justify;">'+bodyText+'</div>' +
+    '<div style="font-size:13px;line-height:2.1;text-indent:2.5em;margin-bottom:8px;text-align:justify;color:#000;">'+bodyText+'</div>' +
     tbl + noteSection +
-    '<p style="font-size:13px;margin:16px 0 36px;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;">' +
-      '<div style="text-align:center;"><p style="font-size:12px;font-weight:600;margin-bottom:4px;">ผู้จัดทำ</p>' +
+    '<p style="font-size:13px;margin:16px 0 36px;color:#000;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;color:#000;">' +
+      '<div style="text-align:center;"><p style="font-size:12px;font-weight:600;margin-bottom:4px;color:#000;">ผู้จัดทำ</p>' +
         '<div style="border-top:1px solid #000;margin:44px 24px 7px;position:relative;">' +
           (d.creator_signature?'<img src="'+d.creator_signature+'" style="height:40px;max-width:140px;position:absolute;bottom:2px;left:50%;transform:translateX(-50%);object-fit:contain;filter:grayscale(100%);">':'') +
         '</div>' +
-        '<p style="font-size:12px;">('+( d.creator_name||r.sale_agent)+')</p><p style="font-size:11px;color:#000;">'+(d.creator_role||'Sale')+'</p></div>' +
+        '<p style="font-size:12px;color:#000;">('+( d.creator_name||r.sale_agent)+')</p><p style="font-size:11px;color:#000;">'+(d.creator_role||'Sale')+'</p></div>' +
       '<div style="text-align:center;">' +
         '<div style="display:flex;gap:18px;justify-content:center;margin-bottom:6px;">' +
-          '<div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:15px;height:15px;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;">'+(isA?'✓':'')+'</div>อนุมัติ</div>' +
-          '<div style="display:flex;align-items:center;gap:5px;font-size:12px;"><div style="width:15px;height:15px;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;">'+(isR?'✓':'')+'</div>ไม่อนุมัติ</div>' +
+          '<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#000;"><div style="width:15px;height:15px;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;">'+(isA?'✓':'')+'</div>อนุมัติ</div>' +
+          '<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#000;"><div style="width:15px;height:15px;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;">'+(isR?'✓':'')+'</div>ไม่อนุมัติ</div>' +
         '</div>' +
         '<div style="border-top:1px solid #000;margin:44px 24px 7px;position:relative;">' +
           (d.signature?'<img src="'+d.signature+'" style="height:42px;max-width:140px;position:absolute;bottom:2px;left:50%;transform:translateX(-50%);object-fit:contain;filter:grayscale(100%);">':'') +
         '</div>' +
-        '<p style="font-size:12px;">('+( r.approved_by||ap.name)+')</p>' +
+        '<p style="font-size:12px;color:#000;">('+( r.approved_by||ap.name)+')</p>' +
         '<p style="font-size:11px;color:#000;">'+ap.role+'</p>' +
         '<p style="font-size:11px;color:#000;font-weight:600;">ผู้อนุมัติ</p>' +
         ((isA||isR)&&r.approved_at?'<p style="font-size:10px;color:#000;margin-top:5px;">'+(isA?'อนุมัติ':'ไม่อนุมัติ')+' เมื่อ '+fmtDT(r.approved_at)+'</p>':'') +
