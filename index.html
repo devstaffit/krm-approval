@@ -29,151 +29,210 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-family:'Sarabun',sans-serif;font-size:14px;background:#fff;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
 .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,149,90,.14);}
 .f textarea{resize:vertical;min-height:60px;}
+.f input[readonly]{background:var(--cream);color:var(--muted);}
 .doc-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:22px;}
 .dc{border:2px solid var(--border);border-radius:10px;padding:13px 8px;text-align:center;cursor:pointer;background:#fff;transition:all .18s;}
-.dc.sel{border-color:var(--gold);background:#FDF8F0;}
-.dc .lbl{font-size:11.5px;font-weight:700;color:var(--navy);}
+.dc:hover{border-color:var(--gold);}.dc.sel{border-color:var(--gold);background:#FDF8F0;}
+.dc .icon{font-size:20px;margin-bottom:5px;}.dc .lbl{font-size:11.5px;font-weight:700;color:var(--navy);}.dc .sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
 .form-section{display:none;}.form-section.active{display:block;}
+.items-wrap{overflow-x:auto;margin-top:4px;}
 .items-table{width:100%;border-collapse:collapse;min-width:540px;}
-.items-table th{background:#000;color:#fff;font-size:11px;padding:9px 10px;text-align:left;}
-.items-table td{padding:5px;border-bottom:1px solid var(--cream2);}
+.items-table th{background:#000;color:#fff;font-size:11px;font-weight:600;padding:9px 10px;text-align:left;letter-spacing:.04em;white-space:nowrap;}
+.items-table th:first-child{border-radius:7px 0 0 7px;}.items-table th:last-child{border-radius:0 7px 7px 0;text-align:center;}
+.items-table td{padding:5px 5px;border-bottom:1px solid var(--cream2);vertical-align:middle;}
+.items-table input,.items-table select{border:1.5px solid var(--border);border-radius:6px;padding:7px 9px;font-family:'Sarabun',sans-serif;font-size:13.5px;background:#fff;color:var(--text);outline:none;width:100%;}
+.items-table input.ra{text-align:right;}
+.items-table input[readonly]{background:var(--cream);color:var(--gold-d);text-align:right;font-weight:700;}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px 8px;border-radius:5px;display:block;margin:auto;}
+.del-btn:hover{color:var(--danger);background:#FEE2E2;}
+.add-row-btn{margin-top:10px;padding:8px 18px;border:1.5px dashed var(--border);border-radius:7px;background:#fff;font-family:'Sarabun',sans-serif;font-size:13px;color:var(--gold-d);cursor:pointer;font-weight:600;}
+.add-row-btn:hover{border-color:var(--gold);background:#FDF8F0;}
 .sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.sum-bar label{font-size:10.5px;color:var(--gold-l);}
-.sum-bar .v{font-size:20px;font-weight:700;color:#fff;font-family:'Noto Serif Thai',serif;}
-/* Status Badges */
-.badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;}
+.sum-bar label{font-size:10.5px;color:var(--gold-l);letter-spacing:.07em;text-transform:uppercase;}
+.sum-bar .v{font-size:20px;font-weight:700;color:#fff;margin-top:3px;font-family:'Noto Serif Thai',serif;}
+.sum-bar .hl{color:var(--gold);}
+.gift-row{display:flex;gap:8px;margin-bottom:7px;}.gift-row input{flex:1;}
+.icon-btn{border:1.5px solid var(--border);background:#fff;border-radius:6px;padding:8px 11px;cursor:pointer;font-size:13px;}
+.sig-canvas-wrap{border:2px dashed var(--border);border-radius:10px;overflow:hidden;background:#FAFAF8;}
+.sig-canvas-wrap.has-sig{border-color:var(--gold);border-style:solid;}
+.btn-submit{width:100%;margin-top:22px;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .2s;box-shadow:0 4px 14px rgba(184,149,90,.3);}
+.aw{max-width:900px;margin:28px auto;padding:0 18px 60px;}
+.filters{display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.fbtn{border:1.5px solid var(--border);background:#fff;border-radius:7px;padding:7px 15px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;}
+.fbtn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.cnt{background:var(--gold);color:var(--navy);border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:3px;}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;box-shadow:var(--sh);overflow:hidden;}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;padding:13px 18px;background:var(--cream);border-bottom:1px solid var(--cream2);gap:10px;}
+.card-hn{font-weight:700;font-size:14.5px;color:var(--navy);}
+.card-meta{font-size:11.5px;color:var(--muted);margin-top:3px;}
+.badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
 .badge.pending_mgr{background:#FEF3C7;color:#92400E;}
 .badge.pending_cmo{background:#F5F3FF;color:#5B21B6;}
 .badge.approved{background:#D1FAE5;color:#065F46;}
 .badge.rejected{background:#FEE2E2;color:#991B1B;}
 .badge.deleted{background:#F3F4F6;color:#6B7280;}
-.card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;box-shadow:var(--sh);overflow:hidden;}
-.card-top{display:flex;justify-content:space-between;padding:13px 18px;background:var(--cream);border-bottom:1px solid var(--cream2);}
-.card-hn{font-weight:700;color:var(--navy);}
+.dpill{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.dp-mixed{background:#F5F3FF;color:#5B21B6;}
+.card-items{padding:0 18px;}
+.ci-header{display:grid;grid-template-columns:1fr 100px 56px 100px;gap:6px;padding:7px 0 5px;border-bottom:1.5px solid var(--border);margin-top:10px;}
+.ci-header span{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+.ci-row{display:grid;grid-template-columns:1fr 100px 56px 100px;gap:6px;padding:6px 0;border-bottom:1px solid var(--cream2);align-items:center;font-size:13px;}
 .card-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 18px 12px;background:var(--cream);border-top:1px solid var(--cream2);}
-.card-acts{padding:11px 18px;border-top:1px solid var(--cream2);display:flex;gap:8px;align-items:center;}
-.btn-approve{padding:8px 18px;background:var(--success);color:#fff;border:none;border-radius:7px;font-weight:700;cursor:pointer;}
-.btn-reject{padding:8px 18px;border:2px solid var(--danger);border-radius:7px;background:#fff;color:var(--danger);font-weight:700;cursor:pointer;}
-.modal-back{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;}
+.info label{font-size:10px;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;}
+.info .v{font-size:13.5px;font-weight:700;margin-top:2px;}
+.card-acts{padding:11px 18px;border-top:1px solid var(--cream2);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.detail-panel{display:none;padding:16px 20px;border-top:1px solid var(--cream2);background:#fff;font-size:13.5px;line-height:2.1;color:var(--text);}
+.detail-panel.open{display:block;}
+.btn-approve{padding:8px 18px;border:none;border-radius:7px;background:var(--success);color:#fff;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-reject{padding:8px 18px;border:2px solid var(--danger);border-radius:7px;background:#fff;color:var(--danger);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.modal-back{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;}
 .modal-back.open{display:flex;}
-.modal-box{background:#fff;border-radius:16px;padding:26px;width:92%;max-width:500px;}
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 24px;border-radius:9px;font-size:13px;opacity:0;transition:0.3s;z-index:9999;}
+.modal-box{background:#fff;border-radius:16px;padding:26px;width:92%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+#sigCanvas{width:100%;height:170px;border:2px dashed var(--border);border-radius:10px;cursor:crosshair;touch-action:none;display:block;background:#FAFAF8;}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 24px;border-radius:9px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:99999;pointer-events:none;}
 #toast.show{opacity:1;}
 #printArea{display:none;}
 /* Report styles */
 .rpt-wrap{max-width:960px;margin:28px auto;padding:0 18px 60px;}
 .rpt-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
-.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
-.rpt-tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;font-size:13px;}
-.rpt-tbl th{background:var(--navy);color:var(--gold-l);padding:10px 13px;text-align:left;}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--sh);}
+.kpi label{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+.kpi .kv{font-size:22px;font-weight:700;color:var(--navy);margin-top:4px;font-family:'Noto Serif Thai',serif;}
+.rpt-tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:var(--sh);margin-bottom:24px;font-size:13px;}
+.rpt-tbl th{background:var(--navy);color:var(--gold-l);padding:10px 13px;text-align:left;font-size:11.5px;font-weight:600;}
 .rpt-tbl td{padding:9px 13px;border-bottom:1px solid var(--cream2);}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12.5px;}
+.bar-row .bg{flex:1;background:var(--cream2);border-radius:4px;height:22px;overflow:hidden;}
+.bar-row .bf{height:100%;background:var(--gold);border-radius:4px;}
 @media print{body>*:not(#printArea){display:none!important;}#printArea{display:block!important;}}
+@media(max-width:620px){.rpt-bar{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
 
 <div id="login-screen" style="display:flex;position:fixed;inset:0;z-index:9000;background:var(--navy);align-items:center;justify-content:center;">
-  <div style="width:92%;max-width:380px;text-align:center;">
-    <h2 style="color:#fff;margin-bottom:20px;">KRM Discount System</h2>
-    <div style="background:rgba(255,255,255,0.06);padding:30px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);">
-      <input id="login-user" placeholder="Username" style="width:100%;padding:12px;margin-bottom:12px;border-radius:8px;">
-      <input id="login-pass" type="password" placeholder="Password" style="width:100%;padding:12px;margin-bottom:20px;border-radius:8px;">
-      <button onclick="doLogin()" style="width:100%;padding:13px;background:var(--gold);border:none;border-radius:9px;font-weight:700;cursor:pointer;">เข้าสู่ระบบ</button>
-      <div id="login-error" style="color:#f87171;margin-top:12px;font-size:13px;"></div>
-    </div>
-  </div>
+  <div style="width:92%;max-width:380px;text-align:center;">
+    <h2 style="color:#fff;margin-bottom:24px;font-family:'Sarabun',sans-serif;">KRM Discount Approval System</h2>
+    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:28px;text-align:left;">
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:11.5px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:6px;">Username</label>
+        <input id="login-user" placeholder="ชื่อผู้ใช้" style="width:100%;border-radius:8px;padding:11px 14px;background:rgba(255,255,255,.08);color:#fff;border:none;outline:none;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:11.5px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:6px;">Password</label>
+        <input id="login-pass" type="password" placeholder="รหัสผ่าน" style="width:100%;border-radius:8px;padding:11px 14px;background:rgba(255,255,255,.08);color:#fff;border:none;outline:none;">
+      </div>
+      <div id="login-error" style="font-size:12.5px;color:#f87171;min-height:18px;margin-bottom:12px;text-align:center;"></div>
+      <button onclick="doLogin()" style="width:100%;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-weight:700;cursor:pointer;">เข้าสู่ระบบ</button>
+    </div>
+  </div>
 </div>
 
 <div id="app-body" style="display:none;">
-  <div class="hdr">
-    <div style="flex:1;"><h1>ระบบขออนุมัติส่วนลด</h1><p>KRM Plastic Surgery Hospital</p></div>
-    <span id="user-badge" style="color:var(--gold-l);font-size:13px;"></span>
-    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;margin-left:10px;">ออกจากระบบ</button>
-  </div>
-  
-  <div class="tabs">
-    <button class="tab active" id="tab-btn-form" onclick="switchTab('form')">📋 ยื่นคำขอ</button>
-    <button class="tab" id="tab-btn-approve" onclick="switchTab('approve')">✅ อนุมัติ / ติดตาม</button>
-    <button class="tab" id="tab-btn-report" onclick="switchTab('report')">📊 รายงาน</button>
-  </div>
+    <div class="hdr">
+      <img id="hdr-logo" style="height:46px;" alt="KRM">
+      <div style="flex:1;"><h1>ระบบขออนุมัติส่วนลด</h1><p>KRM Plastic Surgery Hospital</p></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+        <span id="user-badge" style="font-size:12.5px;color:var(--gold-l);background:rgba(255,255,255,.08);padding:5px 12px;border-radius:20px;"></span>
+        <button onclick="logout()" style="font-size:12px;padding:6px 14px;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:transparent;color:#fff;cursor:pointer;">ออกจากระบบ</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-btn-form" onclick="switchTab('form')">📋 ยื่นคำขอ</button>
+      <button class="tab" id="tab-btn-approve" onclick="switchTab('approve')">✅ อนุมัติ / ติดตาม</button>
+      <button class="tab" id="tab-btn-report" onclick="switchTab('report')">📊 รายงาน</button>
+    </div>
 
-  <div id="tab-form" class="panel active">
-    <div class="fw">
-      <div class="doc-picker">
-        <div class="dc sel" data-type="mixed" onclick="selType('mixed')"><div class="lbl">รายการรวม</div></div>
-        <div class="dc" data-type="room" onclick="selType('room')"><div class="lbl">ส่วนลดห้องพัก</div></div>
-        <div class="dc" data-type="procedure" onclick="selType('procedure')"><div class="lbl">ส่วนลดหัตถการ</div></div>
-        <div class="dc" data-type="gift" onclick="selType('gift')"><div class="lbl">ของแถม</div></div>
-      </div>
-      <div class="sec">ข้อมูลลูกค้า</div>
-      <div class="g2">
-        <div class="f"><label>HN</label><input id="f-hn" placeholder="K69XXXX"></div>
-        <div class="f"><label>ชื่อลูกค้า</label><input id="f-name"></div>
-      </div>
-      <div class="g2" style="margin-top:12px;">
-        <div class="f"><label>ชื่อ Sale</label><input id="f-sale"></div>
-        <div class="f"><label>วันที่นัด</label><input id="f-opdate" type="date"></div>
-      </div>
+    <div id="tab-form" class="panel active">
+        <div class="fw">
+            <div class="sec" style="margin-top:24px;">เลือกประเภทใบขออนุมัติ</div>
+            <div class="doc-picker">
+              <div class="dc sel" data-type="mixed" onclick="selType('mixed')"><div class="lbl">รายการรวม</div></div>
+              <div class="dc" data-type="room" onclick="selType('room')"><div class="lbl">ส่วนลดห้องพัก</div></div>
+              <div class="dc" data-type="procedure" onclick="selType('procedure')"><div class="lbl">ส่วนลดหัตถการ</div></div>
+              <div class="dc" data-type="gift" onclick="selType('gift')"><div class="lbl">ของแถม</div></div>
+            </div>
+            <div class="sec">ข้อมูลลูกค้า</div>
+            <div class="g2">
+              <div class="f"><label>HN</label><input id="f-hn" placeholder="K69XXXX"></div>
+              <div class="f"><label>ชื่อลูกค้า</label><input id="f-name"></div>
+            </div>
+            <div class="g2" style="margin-top:12px;">
+              <div class="f"><label>ชื่อ Sale</label><input id="f-sale"></div>
+              <div class="f"><label>วันที่นัด</label><input id="f-opdate" type="date"></div>
+            </div>
 
-      <div id="sec-mixed" class="form-section active">
-        <div class="sec">รายการที่ขอส่วนลด</div>
-        <table class="items-table"><tbody id="items-body"></tbody></table>
-        <button class="add-row-btn" onclick="addItem()">+ เพิ่มรายการ</button>
-        <div class="sum-bar">
-          <div><label>ยอดรวม</label><div class="v" id="sum-orig">0</div></div>
-          <div><label>ส่วนลด</label><div class="v" id="sum-disc">0</div></div>
-          <div><label>จ่ายรวม</label><div class="v hl" id="sum-final">0</div></div>
+            <div id="sec-mixed" class="form-section active">
+                <div class="sec">รายการที่ขอส่วนลด</div>
+                <div class="items-wrap">
+                    <table class="items-table"><tbody id="items-body"></tbody></table>
+                </div>
+                <button class="add-row-btn" onclick="addItem()">+ เพิ่มรายการ</button>
+                <div class="sum-bar">
+                    <div><label>ยอดรวม</label><div class="v" id="sum-orig">–</div></div>
+                    <div><label>ส่วนลด</label><div class="v" id="sum-disc">–</div></div>
+                    <div><label>จ่ายรวม</label><div class="v hl" id="sum-final">–</div></div>
+                </div>
+            </div>
+
+            <div class="sec">เหตุผล / หมายเหตุ</div>
+            <textarea id="f-reason" style="width:100%; min-height:80px; padding:10px; border-radius:8px; border:1.5px solid var(--border);"></textarea>
+            
+            <div class="sec">ลายเซ็นผู้จัดทำ</div>
+            <div class="sig-canvas-wrap">
+                <canvas id="creatorCanvas" style="width:100%;height:120px;cursor:crosshair;touch-action:none;" width="700" height="120"></canvas>
+            </div>
+            <button class="btn-submit" onclick="submitRequest()">📤 ส่งคำขออนุมัติ</button>
         </div>
-      </div>
-
-      <div id="sec-room" class="form-section">... (Room Details)</div>
-      <div id="sec-procedure" class="form-section">... (Proc Details)</div>
-      <div id="sec-gift" class="form-section">... (Gift Details)</div>
-
-      <div class="sec">เหตุผล</div>
-      <textarea id="f-reason" style="width:100%;min-height:80px;border-radius:8px;padding:10px;border:1.5px solid var(--border);"></textarea>
-
-      <div class="sec">ลายเซ็นผู้จัดทำ</div>
-      <div class="sig-canvas-wrap">
-        <canvas id="creatorCanvas" width="700" height="120" style="width:100%;cursor:crosshair;"></canvas>
-      </div>
-      <button class="btn-submit" onclick="submitRequest()">📤 ส่งคำขออนุมัติ</button>
     </div>
-  </div>
 
-  <div id="tab-approve" class="panel">
-    <div class="aw">
-      <div class="filters">
-        <button class="fbtn active" onclick="filterBy('all',this)">ทั้งหมด <span id="cnt-all" class="cnt">0</span></button>
-        <button class="fbtn" onclick="filterBy('pending',this)">รออนุมัติ <span id="cnt-pending" class="cnt">0</span></button>
-        <button class="fbtn" onclick="filterBy('approved',this)">อนุมัติแล้ว <span id="cnt-approved" class="cnt">0</span></button>
-      </div>
-      <div id="req-list"></div>
+    <div id="tab-approve" class="panel">
+        <div class="aw">
+            <div class="filters">
+                <button class="fbtn active" onclick="filterBy('all',this)">ทั้งหมด <span id="cnt-all" class="cnt">0</span></button>
+                <button class="fbtn" onclick="filterBy('pending',this)">รออนุมัติ <span id="cnt-pending" class="cnt">0</span></button>
+                <button class="fbtn" onclick="filterBy('approved',this)">อนุมัติแล้ว <span id="cnt-approved" class="cnt">0</span></button>
+                <button class="fbtn" style="margin-left:auto;" onclick="loadReqs()">🔄 รีเฟรช</button>
+            </div>
+            <div id="req-list"></div>
+        </div>
     </div>
-  </div>
 
-  <div id="tab-report" class="panel">
-    <div class="rpt-wrap">
-      <h2>รายงานการขอส่วนลด</h2>
-      <div id="rpt-kpi" class="rpt-bar"></div>
-      <table class="rpt-tbl">
-        <thead><tr><th>วันที่</th><th>ลูกค้า</th><th>HN</th><th>Sale</th><th>ส่วนลด%</th><th>มูลค่า</th><th>สถานะ</th></tr></thead>
-        <tbody id="rpt-body"></tbody>
-      </table>
+    <div id="tab-report" class="panel">
+        <div class="rpt-wrap">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h2>รายงานการขอส่วนลด</h2>
+                <button onclick="exportCSV()" class="fbtn">Export CSV</button>
+            </div>
+            <div id="rpt-kpi" class="rpt-bar"></div>
+            <table class="rpt-tbl" id="rpt-table">
+                <thead><tr><th>วันที่</th><th>ลูกค้า</th><th>HN</th><th>Sale</th><th>ส่วนลด%</th><th>มูลค่า</th><th>สถานะ</th></tr></thead>
+                <tbody id="rpt-body"></tbody>
+            </table>
+        </div>
     </div>
-  </div>
 </div>
 
 <div id="sigModal" class="modal-back">
   <div class="modal-box" style="text-align:center;">
-    <h3>✍️ ลงลายเซ็นอนุมัติ</h3>
-    <input id="pin-input" type="password" maxlength="4" placeholder="ใส่ PIN 4 หลัก" style="width:100%;padding:12px;margin:15px 0;text-align:center;font-size:20px;letter-spacing:10px;">
-    <canvas id="sigCanvas" width="450" height="150" style="border:1px dashed #ccc;width:100%;background:#fafafa;"></canvas>
+    <h3 id="sig-title">เซ็นอนุมัติ</h3>
+    <input id="pin-input" type="password" maxlength="4" placeholder="ใส่ PIN 4 หลัก" style="width:100%;padding:12px;margin:15px 0;text-align:center;font-size:24px;letter-spacing:10px; border:1.5px solid var(--border); border-radius:8px;">
+    <canvas id="sigCanvas" width="450" height="170" style="border:1px dashed #ccc; width:100%; background:#fafafa;"></canvas>
     <div style="display:flex;gap:10px;margin-top:20px;">
       <button onclick="confirmApprove()" style="flex:2;padding:12px;background:var(--success);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">✅ ยืนยันอนุมัติ</button>
-      <button onclick="closeSigModal()" style="flex:1;padding:12px;border:1px solid #ccc;border-radius:8px;cursor:pointer;">ยกเลิก</button>
+      <button onclick="closeSigModal()" style="flex:1;padding:12px;border:1.5px solid #ccc;border-radius:8px;cursor:pointer;">ยกเลิก</button>
     </div>
   </div>
+</div>
+
+<div id="noteModal" class="modal-back">
+  <div class="modal-box">
+    <h3>ระบุหมายเหตุ</h3>
+    <textarea id="note-text" style="width:100%; padding:10px; margin-top:10px; border-radius:8px; min-height:80px;"></textarea>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+      <button onclick="confirmNote()" style="flex:1; padding:10px; background:var(--navy); color:#fff; border-radius:8px;">ยืนยัน</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -188,7 +247,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const DISCOUNT_THRESHOLD = 10;
 const USERS = {
   sale_mgr: { name:'นภา ชำนาญรบ', role:'Sale Manager', email:'chnabha2529@gmail.com', pin:'1234' },
-  cmo:      { name:'นายสกุลชัย ดันตระบัณฑิตย์', role:'Chief Marketing Officer', email:'Sakulchai.t@krmhospital-inter.com', pin:'5678' },
+  cmo:      { name:'นายสกุลชัย ดันตระบัณฑิตย์', role:'Chief Marketing Officer', email:'Sakulchai.t@krmhospital-inter.com', pin:'5678' }
 };
 const LOGIN_ACCOUNTS = [
   { username:'sale1', password:'sale1234', label:'Sale 1', role:'sale' },
@@ -196,14 +255,17 @@ const LOGIN_ACCOUNTS = [
   { username:'cmo', password:'cmo5678', label:'สกุลชัย', role:'cmo' },
   { username:'accounting', password:'acc1234', label:'Accounting', role:'accounting' }
 ];
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-emailjs.init({ publicKey: 'M3GFyEbVcO48C7wy0' });
 
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+emailjs.init("M3GFyEbVcO48C7wy0");
+
+// Global Variables
 let currentUser = null;
 let allReqs = [];
 let sigPendingId = null;
 let curFilter = 'all';
 let curType = 'mixed';
+let itemRC = 0;
 
 // ── LOGIC: AUTH ──
 function doLogin() {
@@ -221,62 +283,75 @@ function doLogin() {
   }
 }
 
-// ── LOGIC: 2-STEP APPROVAL ──
+function logout() { location.reload(); }
+
+// ── LOGIC: 2-STEP FLOW (THE CORE) ──
 async function submitRequest() {
-  const hn = document.getElementById('f-hn').value.trim();
-  const name = document.getElementById('f-name').value.trim();
-  const sale = document.getElementById('f-sale').value.trim();
-  const full = parseFloat(document.getElementById('sum-orig')?.textContent) || 0; // Simple example
-  const disc = parseFloat(document.getElementById('sum-disc')?.textContent) || 0;
-  const pct = full > 0 ? (disc/full)*100 : 0;
+    const hn = document.getElementById('f-hn').value.trim();
+    const name = document.getElementById('f-name').value.trim();
+    const sale = document.getElementById('f-sale').value.trim();
+    
+    // คำนวณส่วนลดหา %
+    let tO = 0, tD = 0;
+    document.querySelectorAll('#items-body tr').forEach(tr => {
+        const inp = tr.querySelectorAll('input');
+        const p = parseFloat(inp[1].value)||0;
+        const pct = parseFloat(inp[2].value)||0;
+        tO += p; tD += (p*pct/100);
+    });
+    const dpct = tO > 0 ? (tD/tO)*100 : 0;
 
-  if(!hn || !name) return showToast("⚠️ กรุณากรอกข้อมูลให้ครบ");
+    if(!hn || !name) return showToast("⚠️ กรุณากรอกข้อมูลลูกค้า");
 
-  let initialStatus = 'pending_mgr';
-  if (currentUser.role === 'manager') {
-    initialStatus = (pct > DISCOUNT_THRESHOLD) ? 'pending_cmo' : 'approved';
-  }
+    // Flow Logic
+    let initialStatus = 'pending_mgr';
+    if (currentUser.role === 'manager') {
+        initialStatus = (dpct > DISCOUNT_THRESHOLD) ? 'pending_cmo' : 'approved';
+    }
 
-  const payload = {
-    doc_type: curType, hn, customer_name: name, sale_agent: sale,
-    original_price: Math.round(full), discount_pct: Math.round(pct),
-    discount_amount: Math.round(disc), final_price: Math.round(full-disc),
-    status: initialStatus,
-    created_at: new Date().toISOString()
-  };
+    const payload = {
+        hn, customer_name: name, sale_agent: sale, doc_type: curType,
+        original_price: Math.round(tO), discount_pct: Math.round(dpct),
+        discount_amount: Math.round(tD), final_price: Math.round(tO - tD),
+        status: initialStatus,
+        reason: document.getElementById('f-reason').value,
+        doc_data: { creator_sig: document.getElementById('creatorCanvas').toDataURL() },
+        created_at: new Date().toISOString()
+    };
 
-  const { data, error } = await sb.from('approval_requests').insert(payload).select().single();
-  if (error) return showToast("❌ Error: " + error.message);
+    const { data, error } = await sb.from('approval_requests').insert(payload).select().single();
+    if(error) return showToast("❌ Supabase Error: " + error.message);
 
-  if (initialStatus !== 'approved') sendEmail(data);
-  showToast("✅ ส่งคำขอเรียบร้อยแล้ว");
-  switchTab('approve');
+    if (initialStatus !== 'approved') sendEmail(data);
+    showToast("✅ ยื่นเรื่องเรียบร้อย (" + initialStatus + ")");
+    resetForm(); switchTab('approve');
 }
 
 async function confirmApprove() {
-  const pin = document.getElementById('pin-input').value;
-  const r = allReqs.find(x => x.id === sigPendingId);
-  const targetUser = (r.status === 'pending_mgr') ? USERS.sale_mgr : USERS.cmo;
+    const pin = document.getElementById('pin-input').value;
+    const r = allReqs.find(x => x.id === sigPendingId);
+    const targetUser = (r.status === 'pending_mgr') ? USERS.sale_mgr : USERS.cmo;
 
-  if (pin !== targetUser.pin) return showToast("❌ PIN ไม่ถูกต้อง");
+    if (pin !== targetUser.pin) return showToast("❌ PIN ไม่ถูกต้อง");
 
-  let nextStatus = 'approved';
-  if (r.status === 'pending_mgr' && r.discount_pct > DISCOUNT_THRESHOLD) {
-    nextStatus = 'pending_cmo';
-  }
+    // Status Transition
+    let nextStatus = 'approved';
+    if (r.status === 'pending_mgr' && r.discount_pct > DISCOUNT_THRESHOLD) {
+        nextStatus = 'pending_cmo';
+    }
 
-  const { error } = await sb.from('approval_requests').update({ 
-    status: nextStatus, 
-    approved_by: currentUser.label,
-    approved_at: new Date().toISOString()
-  }).eq('id', sigPendingId);
+    const { error } = await sb.from('approval_requests').update({ 
+        status: nextStatus, 
+        approved_by: currentUser.label,
+        approved_at: new Date().toISOString(),
+        doc_data: { ...r.doc_data, last_sig: document.getElementById('sigCanvas').toDataURL() }
+    }).eq('id', sigPendingId);
 
-  if (!error) {
-    showToast(nextStatus === 'pending_cmo' ? "✅ ส่งต่อให้ CMO แล้ว" : "✅ อนุมัติเรียบร้อย");
-    if (nextStatus === 'pending_cmo') sendEmail({...r, status: 'pending_cmo'});
-    closeSigModal();
-    loadReqs();
-  }
+    if (!error) {
+        showToast(nextStatus === 'pending_cmo' ? "✅ ส่งต่อให้ CMO แล้ว" : "✅ อนุมัติสำเร็จ");
+        if (nextStatus === 'pending_cmo') sendEmail({...r, status: 'pending_cmo'});
+        closeSigModal(); loadReqs();
+    }
 }
 
 function sendEmail(r) {
@@ -288,12 +363,10 @@ function sendEmail(r) {
     final_price: r.final_price.toLocaleString() + ' ฿',
     app_url: window.location.href
   };
-  emailjs.send('service_k3m1kzl', 'template_o5c9od9', params)
-    .then(() => console.log("Email Sent to " + ap.role))
-    .catch(err => console.error("Email Error", err));
+  emailjs.send('service_k3m1kzl', 'template_o5c9od9', params);
 }
 
-// ── UI HELPERS ──
+// ── UI RENDER (MAINTAIN ORIGINAL STYLE) ──
 async function loadReqs() {
   const { data } = await sb.from('approval_requests').select('*').order('created_at',{ascending:false});
   allReqs = data || [];
@@ -304,22 +377,28 @@ async function loadReqs() {
 function renderList() {
   const el = document.getElementById('req-list');
   const data = curFilter === 'all' ? allReqs : allReqs.filter(r => {
-    if (curFilter === 'pending') return r.status === 'pending_mgr' || r.status === 'pending_cmo';
+    if (curFilter === 'pending') return r.status.includes('pending');
     return r.status === curFilter;
   });
+
+  const SL = { pending_mgr:'รอ Manager', pending_cmo:'รอ CMO', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ' };
 
   el.innerHTML = data.map(r => `
     <div class="card">
       <div class="card-top">
         <div class="card-hn">HN: ${r.hn} | ${r.customer_name}</div>
-        <span class="badge ${r.status}">${r.status.replace('_',' ')}</span>
+        <span class="badge ${r.status}">${SL[r.status]||r.status}</span>
       </div>
-      <div style="padding:15px; font-size:14px;">
-        <div>ยื่นโดย: ${r.sale_agent} | ส่วนลด: ${r.discount_pct}%</div>
-        <div style="font-weight:700; color:var(--gold-d); margin-top:5px;">ยอดจ่าย: ${r.final_price.toLocaleString()} ฿</div>
+      <div style="padding:18px; font-size:14px;">
+        <div style="color:var(--muted); margin-bottom:8px;">ยื่นโดย: ${r.sale_agent} | วันที่: ${new Date(r.created_at).toLocaleString('th-TH')}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>ส่วนลด: <strong style="color:var(--danger);">${r.discount_pct}%</strong></div>
+            <div style="font-size:18px; font-weight:700; color:var(--navy);">จ่ายจริง: ${r.final_price.toLocaleString()} ฿</div>
+        </div>
       </div>
       <div class="card-acts">
         ${canApprove(r) ? `<button class="btn-approve" onclick="openApprove('${r.id}')">✍️ เซ็นอนุมัติ</button>` : ''}
+        <button class="fbtn" onclick="printDoc('${r.id}')">🖨️ พิมพ์</button>
       </div>
     </div>
   `).join('');
@@ -346,29 +425,35 @@ function switchTab(t) {
 }
 
 function buildReport() {
-  const body = document.getElementById('rpt-body');
-  body.innerHTML = allReqs.map(r => `
-    <tr>
-      <td>${new Date(r.created_at).toLocaleDateString('th-TH')}</td>
-      <td>${r.customer_name}</td>
-      <td>${r.hn}</td>
-      <td>${r.sale_agent}</td>
-      <td>${r.discount_pct}%</td>
-      <td>${r.discount_amount.toLocaleString()}</td>
-      <td><span class="badge ${r.status}">${r.status}</span></td>
-    </tr>
-  `).join('');
+    const rpt = document.getElementById('rpt-kpi');
+    const approved = allReqs.filter(r => r.status === 'approved');
+    const total = approved.reduce((s, r) => s + r.discount_amount, 0);
+    rpt.innerHTML = `
+        <div class="kpi"><label>คำขอทั้งหมด</label><div class="kv">${allReqs.length}</div></div>
+        <div class="kpi"><label>อนุมัติแล้ว</label><div class="kv" style="color:var(--success)">${approved.length}</div></div>
+        <div class="kpi"><label>มูลค่ารวมส่วนลด</label><div class="kv">${total.toLocaleString()} ฿</div></div>
+    `;
+    const body = document.getElementById('rpt-body');
+    body.innerHTML = allReqs.map(r => `
+        <tr>
+            <td>${new Date(r.created_at).toLocaleDateString('th-TH')}</td>
+            <td>${r.customer_name}</td><td>${r.hn}</td><td>${r.sale_agent}</td>
+            <td>${r.discount_pct}%</td><td>${r.discount_amount.toLocaleString()}</td>
+            <td>${r.status}</td>
+        </tr>
+    `).join('');
 }
 
+// ── UTILS ──
 function openApprove(id) { sigPendingId = id; document.getElementById('sigModal').classList.add('open'); }
 function closeSigModal() { document.getElementById('sigModal').classList.remove('open'); document.getElementById('pin-input').value=''; }
 function showToast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-function logout() { location.reload(); }
 function selType(t) { curType = t; document.querySelectorAll('.dc').forEach(c => c.classList.toggle('sel', c.dataset.type===t)); }
 function addItem() { 
+    itemRC++;
     const b = document.getElementById('items-body');
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><input placeholder="รายการ" style="width:100%;"></td><td><input type="number" placeholder="ราคา" oninput="calcItems()" style="width:80px;"></td><td><input type="number" placeholder="ลด%" oninput="calcItems()" style="width:50px;"></td>`;
+    tr.innerHTML = `<td><input placeholder="รายการ" style="width:100%;"></td><td><input type="number" placeholder="ราคา" oninput="calcItems()" style="width:100px;" class="ra"></td><td><input type="number" placeholder="ลด%" oninput="calcItems()" style="width:60px;" class="ra"></td>`;
     b.appendChild(tr);
 }
 function calcItems() {
@@ -379,10 +464,48 @@ function calcItems() {
         const pct = parseFloat(inp[2].value)||0;
         tO += p; tD += (p*pct/100);
     });
-    document.getElementById('sum-orig').textContent = tO;
-    document.getElementById('sum-disc').textContent = tD;
-    document.getElementById('sum-final').textContent = tO - tD;
+    document.getElementById('sum-orig').textContent = tO.toLocaleString() + ' ฿';
+    document.getElementById('sum-disc').textContent = tD.toLocaleString() + ' ฿';
+    document.getElementById('sum-final').textContent = (tO - tD).toLocaleString() + ' ฿';
 }
+function filterBy(s, b) {
+    curFilter = s;
+    document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    renderList();
+}
+function exportCSV() {
+    let csv = "\uFEFFวันที่,ลูกค้า,HN,Sale,ส่วนลด%,มูลค่า\n";
+    allReqs.forEach(r => {
+        csv += `${new Date(r.created_at).toLocaleDateString('th-TH')},${r.customer_name},${r.hn},${r.sale_agent},${r.discount_pct},${r.discount_amount}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "KRM_Report.csv";
+    link.click();
+}
+function resetForm() {
+    document.getElementById('f-hn').value=''; document.getElementById('f-name').value='';
+    document.getElementById('items-body').innerHTML = ''; itemRC=0; addItem();
+}
+
+// Signature Pad Simplification (for safety)
+const canvas = document.getElementById('sigCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+canvas.addEventListener('mousedown', () => drawing = true);
+canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+canvas.addEventListener('mousemove', (e) => {
+    if(!drawing) return;
+    ctx.lineWidth = 2; ctx.lineCap = 'round';
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+});
+
+// Init
+selType('mixed'); addItem();
 </script>
 </body>
 </html>
