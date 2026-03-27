@@ -12,7 +12,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
 #cfg{background:#fff3cd;border-bottom:2px solid #ffc107;padding:10px 24px;text-align:center;font-size:13px;color:#856404;}
-#cfg.hide{display:none;}
+#cfg.hide{display:none !important;} /* บังคับซ่อน */
 .hdr{background:var(--navy);padding:14px 28px;display:flex;align-items:center;gap:16px;}
 .hdr h1{color:#fff;font-size:16px;font-weight:700;}.hdr p{color:var(--gold-l);font-size:12px;margin-top:2px;}
 .tabs{background:var(--navy);display:flex;gap:2px;padding:0 22px;}
@@ -72,8 +72,8 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .card-meta{font-size:11.5px;color:var(--muted);margin-top:3px;}
 
 /* ────────────────────────────────────────────────
-   สถานะ Badge ใหม่ (2-Step Approval)
-   ──────────────────────────────────────────────── */
+   สถานะ Badge ใหม่ (2-Step Approval)
+   ──────────────────────────────────────────────── */
 .badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
 .badge.pending_mgr{background:#FEF3C7;color:#92400E;} /* รอ Manager */
 .badge.pending_cmo{background:#F5F3FF;color:#5B21B6;} /* รอ CMO */
@@ -438,10 +438,10 @@ const APP_URL             = window.location.origin + window.location.path
 // ค้นหาโค้ดส่วนนี้แล้วลบออก หรือแก้ไขตามข้างล่างครับ
 const isConfigured = true // เปลี่ยนจาก !SUPABASE_URL.includes... เป็น true ไปเลย
 var sb = null
-if (isConfigured) { 
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
-    // บรรทัดข้างล่างนี้คือคำสั่งซ่อนแถบแจ้งเตือน
-    document.getElementById('cfg').className = 'hide' 
+if (isConfigured) { 
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); 
+    // บรรทัดข้างล่างนี้คือคำสั่งซ่อนแถบแจ้งเตือน
+    document.getElementById('cfg').className = 'hide' 
 }
 
 ;(function(){
@@ -474,9 +474,9 @@ function renderList() {
   var el = document.getElementById('req-list')
   var allVisible = allReqs.filter(function(r){return r.status!=='deleted'})
   var data = curFilter === 'all' ? allVisible : allVisible.filter(function(r){
-    if (curFilter === 'pending') return r.status === 'pending_mgr' || r.status === 'pending_cmo'
-    return r.status === curFilter
-  })
+    if (curFilter === 'pending') return r.status === 'pending_mgr' || r.status === 'pending_cmo'
+    return r.status === curFilter
+  })
   if (!data.length) { el.innerHTML = '<div class="empty"><div style="font-size:40px;">📭</div><p>ไม่มีคำขอในหมวดนี้</p></div>'; return }
   el.innerHTML = data.map(function(r) {
     var d = r.doc_data||{}, items = d.items||[], isGift = r.doc_type==='gift'
@@ -489,15 +489,15 @@ function renderList() {
       : isGift ? '<div style="padding:8px 18px;font-size:13px;color:var(--muted);">'+(d.gift_items||[]).join(' · ')+'</div>' : ''
     var approvalNote = d.approval_note ? '<div style="padding:6px 18px 0;font-size:12px;color:#92400E;"><strong>💬 หมายเหตุ:</strong> '+d.approval_note+'</div>' : ''
     var actBtns = ''
-    
-    // Logic ใครมีสิทธิ์เห็นปุ่มเซ็นอนุมัติ
+    
+    // Logic ใครมีสิทธิ์เห็นปุ่มเซ็นอนุมัติ
     if ((r.status === 'pending_mgr' || r.status === 'pending_cmo') && canApprove(r)) {
       actBtns = '<button class="btn-approve" onclick="openApprove(\''+r.id+'\')">✍️ เซ็นอนุมัติ</button><button class="btn-reject" onclick="openReject(\''+r.id+'\')">✗ ไม่อนุมัติ</button>'
     } else if (r.status === 'pending_mgr' || r.status === 'pending_cmo') {
       actBtns = '<span style="font-size:12px;color:var(--muted);padding:4px 0;">⏳ '+(r.status==='pending_mgr'?'รอ Manager':'รอ CMO')+'</span>'
       if (canEdit(r)) actBtns += '<button class="btn-edit" onclick="editReq(\''+r.id+'\')">✏️ แก้ไข</button><button class="btn-delete" onclick="deleteReq(\''+r.id+'\')">🗑️ ลบ</button>'
     } else {
-      actBtns = '<div class="signed"><span class="stamp '+r.status+'">'+(r.status==='approved'?'อนุมัติแล้ว':'ไม่อนุมัติ')+'</span>'+(d.signature?'<img class="sig-img" src="'+d.signature+'" alt="ลายเซ็น">':'')+'<span>'+(r.approved_by||ap.name)+' · '+fmtDT(r.approved_at)+'</span></div>'
+      actBtns = '<div class="signed"><span class="stamp '+r.status+'">'+(SL[r.status]||r.status)+'</span>'+(d.signature?'<img class="sig-img" src="'+d.signature+'" alt="ลายเซ็น">':'')+'<span>'+(r.approved_by||ap.name)+' · '+fmtDT(r.approved_at)+'</span></div>'
     }
     return '<div class="card">' +
       '<div class="card-top"><div>' +
@@ -551,7 +551,7 @@ function pinKey(k) {
   updatePinDots()
   if (pinBuffer.length===4) {
     setTimeout(function(){
-      // ตรวจสอบ PIN ตาม user ที่กำหนด
+      // ตรวจสอบ PIN ตาม user ที่กำหนด
       if (pinBuffer===USERS[pinUserKey].pin) {
         var cb=pinCallback; closePinModal(); if(cb) cb()
       } else {
@@ -569,10 +569,10 @@ function updatePinDots() {
 function openApprove(id) {
   var r = allReqs.find(function(x){return x.id===id}); if(!r) return
   if (!canApprove(r)) { showToast('⚠️ ไม่มีสิทธิ์อนุมัติรายการนี้'); return }
-  
-  // เลือกเป้าหมาย PIN ตามสถานะปัจจุบัน
-  var userKey = r.status === 'pending_mgr' ? 'sale_mgr' : 'cmo';
-  var ap = USERS[userKey];
+  
+  // เลือกเป้าหมาย PIN ตามสถานะปัจจุบัน
+  var userKey = r.status === 'pending_mgr' ? 'sale_mgr' : 'cmo';
+  var ap = USERS[userKey];
 
   openPinModal(userKey,'ยืนยัน: '+ap.role, ap.name+' — ใส่ PIN 4 หลักเพื่อเซ็นอนุมัติ', function() {
     // หลัง PIN สำเร็จ เปิด note modal
@@ -588,8 +588,8 @@ function openReject(id) {
   var r = allReqs.find(function(x){return x.id===id}); if(!r) return
   if (!canApprove(r)) { showToast('⚠️ ไม่มีสิทธิ์'); return }
 
-  var userKey = r.status === 'pending_mgr' ? 'sale_mgr' : 'cmo';
-  var ap = USERS[userKey];
+  var userKey = r.status === 'pending_mgr' ? 'sale_mgr' : 'cmo';
+  var ap = USERS[userKey];
 
   openPinModal(userKey,'ยืนยัน: '+ap.role, ap.name+' — ใส่ PIN 4 หลักเพื่อดำเนินการ', function() {
     openNoteModal('หมายเหตุการไม่อนุมัติ','กรุณาระบุเหตุผล (ถ้ามี)',false,function(note){
@@ -607,36 +607,37 @@ function confirmSig() {
 
 async function doApprove(id, sig, note) {
   var r = allReqs.find(function(x){return x.id===id}); if(!r) return
-  
-  // Logic การเปลี่ยนสถานะ (2-Step)
-  var nextStatus = 'approved';
-  if (r.status === 'pending_mgr' && r.discount_pct > DISCOUNT_THRESHOLD) {
-    nextStatus = 'pending_cmo';
-  }
+  
+  // Logic การเปลี่ยนสถานะ (2-Step)
+  var nextStatus = 'approved';
+  if (r.status === 'pending_mgr' && r.discount_pct > DISCOUNT_THRESHOLD) {
+    nextStatus = 'pending_cmo';
+  }
 
   var newData = Object.assign({}, r.doc_data||{}, { signature:sig, approval_note:note||'' })
   if (!isConfigured) {
     r.status=nextStatus; r.approved_at=new Date().toISOString(); r.approved_by=currentUser.label; r.doc_data=newData
-    renderList(); updateCounts(); 
-    showToast(nextStatus === 'pending_cmo' ? '✅ ส่งต่อให้ CMO แล้ว' : '✅ อนุมัติพร้อมลายเซ็น'); 
-    return
+    renderList(); updateCounts(); 
+    showToast(nextStatus === 'pending_cmo' ? '✅ ส่งต่อให้ CMO แล้ว' : '✅ อนุมัติพร้อมลายเซ็น'); 
+    if(nextStatus === 'pending_cmo') sendEmail(r);
+    return
   }
-  var { error } = await sb.from('approval_requests').update({ 
-    status:nextStatus, 
-    approved_at:new Date().toISOString(), 
-    approved_by:currentUser.label, 
-    doc_data:newData 
-  }).eq('id',id)
-  
-  if (!error) { 
-    showToast(nextStatus === 'pending_cmo' ? '✅ ส่งต่อให้ CMO แล้ว' : '✅ อนุมัติพร้อมลายเซ็น'); 
-    // ถ้าส่งต่อให้ CMO ให้ยิงเมล์หา CMO ด้วย
-    if (nextStatus === 'pending_cmo') {
-      let updatedData = {...r, status: nextStatus};
-      sendEmail(updatedData);
-    }
-    loadReqs() 
-  }
+  var { error } = await sb.from('approval_requests').update({ 
+    status:nextStatus, 
+    approved_at:new Date().toISOString(), 
+    approved_by:currentUser.label, 
+    doc_data:newData 
+  }).eq('id',id)
+  
+  if (!error) { 
+    showToast(nextStatus === 'pending_cmo' ? '✅ ส่งต่อให้ CMO แล้ว' : '✅ อนุมัติพร้อมลายเซ็น'); 
+    // ถ้าส่งต่อให้ CMO ให้ยิงเมล์หา CMO ด้วย
+    if (nextStatus === 'pending_cmo') {
+      let updatedData = Object.assign({}, r, { status: nextStatus });
+      sendEmail(updatedData);
+    }
+    loadReqs() 
+  }
   else showToast('❌ '+error.message)
 }
 
@@ -754,7 +755,7 @@ function printDoc(id) {
     ? '<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;color:#000;">' +
       '<thead><tr style="border-bottom:2px solid #000;">' +
       '<th style="padding:7px 9px;color:#000;text-align:left;font-weight:700;">รายการ</th>' +
-     '<th style="padding:7px 9px;color:#000;text-align:right;font-weight:700;">ราคาเต็ม (฿)</th>' +
+     '<th style="padding:7px 9px;color:#000;text-align:right;font-weight:700;">ราคาเต็ม (฿)</th>' +
       '<th style="padding:7px 9px;color:#000;text-align:center;font-weight:700;">ส่วนลด %</th>' +
       '<th style="padding:7px 9px;color:#000;text-align:right;font-weight:700;">ลูกค้าจ่าย (฿)</th>' +
       '</tr></thead><tbody>' +
@@ -861,7 +862,7 @@ function initCreatorPad() {
   c.addEventListener('mousedown',function(e){creatorDrawing=true;var p=pos(e);clx=p.x;cly=p.y;markCreatorSig()})
   c.addEventListener('mousemove',function(e){if(!creatorDrawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(clx,cly);ctx.lineTo(p.x,p.y);ctx.stroke();clx=p.x;cly=p.y})
   c.addEventListener('mouseup',function(){creatorDrawing=false})
- c.addEventListener('mouseleave',function(){creatorDrawing=false})
+ c.addEventListener('mouseleave',function(){creatorDrawing=false})
   c.addEventListener('touchstart',function(e){e.preventDefault();creatorDrawing=true;var p=pos(e);clx=p.x;cly=p.y;markCreatorSig()},{passive:false})
   c.addEventListener('touchmove',function(e){if(!creatorDrawing)return;e.preventDefault();var p=pos(e);ctx.beginPath();ctx.moveTo(clx,cly);ctx.lineTo(p.x,p.y);ctx.stroke();clx=p.x;cly=p.y},{passive:false})
   c.addEventListener('touchend',function(e){e.preventDefault();creatorDrawing=false},{passive:false})
@@ -951,6 +952,29 @@ selType('mixed'); addItem(); loadReqs()
   if (saved) { try{currentUser=JSON.parse(saved);showApp()}catch(e){document.getElementById('login-screen').style.display='flex'} }
   else document.getElementById('login-screen').style.display='flex'
 })()
+
+// ── LOGIC: CAN APPROVE ──
+function canApprove(r) {
+  if (!currentUser || !r) return false;
+  var role = currentUser.role;
+  if (role === 'manager') return r.status === 'pending_mgr';
+  if (role === 'cmo') return r.status === 'pending_cmo';
+  return false;
+}
+
+// ── LOGIC: GET APPROVER ──
+function getApprover(pct) {
+  return pct <= DISCOUNT_THRESHOLD ? USERS.sale_mgr : USERS.cmo;
+}
+
+// ── LOGIC: FILTER BY ROLE ──
+const SL = { 
+  pending_mgr: 'รอ Manager', 
+  pending_cmo: 'รอ CMO', 
+  approved: 'อนุมัติแล้ว', 
+  rejected: 'ไม่อนุมัติ', 
+  deleted: 'ลบแล้ว' 
+};
 </script>
 </body>
 </html>
