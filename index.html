@@ -340,18 +340,108 @@ function buildReport() {
 }
 
 function printDoc(id) {
-    const r = allReqs.find(x => x.id === id), d = r.doc_data, isHigh = r.discount_pct > 10;
+    const r = allReqs.find(x => x.id === id);
+    const d = r.doc_data;
+    const isHigh = r.discount_pct > 10;
+    const today = new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // ดึงข้อมูลรายการตามประเภท (Mixed, Room, Procedure, Gift)
+    let itemRows = "";
+    if (r.doc_type === 'mixed' && d.items) {
+        itemRows = d.items.map(it => `<tr><td>${it.name}</td><td align="right">${it.orig.toLocaleString()}</td><td align="center">${it.pct}%</td><td align="right">${it.final.toLocaleString()}</td></tr>`).join('');
+    } else if (r.doc_type === 'procedure') {
+        itemRows = `<tr><td>${d.procedure_name || 'หัตถการ'}</td><td align="right">${r.original_price.toLocaleString()}</td><td align="center">${r.discount_pct}%</td><td align="right">${r.final_price.toLocaleString()}</td></tr>`;
+    } else if (r.doc_type === 'room') {
+        itemRows = `<tr><td>ค่าห้องพัก (${d.checkin} - ${d.checkout})</td><td align="right">${r.original_price.toLocaleString()}</td><td align="center">${r.discount_pct}%</td><td align="right">${r.final_price.toLocaleString()}</td></tr>`;
+    }
+
+    // ส่วนของลายเซ็นตามเงื่อนไข 
     const sigTable = `
-        <table style="width:100%; margin-top:50px; text-align:center; font-size:12px;">
+        <table style="width:100%; margin-top:50px; text-align:center; font-size:14px; color:#000;">
             <tr>
-                <td><p>ผู้จัดทำ</p><img src="${d.creator_sig}" style="height:50px;"><p>(${d.creator_name})</p></td>
-                <td>${isHigh ? `<p>ผู้รับทราบ</p>${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;">` : '____________'}<p>(${USERS.sale_mgr.name})</p>` : ''}</td>
-                <td><p>ผู้อนุมัติ</p>${!isHigh ? `${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;">` : '____________'}<p>(${USERS.sale_mgr.name})</p>` : `${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;">` : '____________'}<p>(${USERS.cmo.name})</p>`}</td>
+                <td style="width:33%;">
+                    <p>ผู้จัดทำ</p>
+                    <div style="height:60px; border-bottom:1px solid #000; margin:0 20px; position:relative;">
+                        <img src="${d.creator_sig}" style="height:55px; position:absolute; bottom:2px; left:50%; transform:translateX(-50%);">
+                    </div>
+                    <p>(${r.sale_agent})</p>
+                    <p>Sale</p>
+                </td>
+                <td style="width:33%;">
+                    ${isHigh ? `
+                        <p>ผู้ตรวจสอบ/รับทราบ</p>
+                        <div style="height:60px; border-bottom:1px solid #000; margin:0 20px; position:relative;">
+                            ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:55px; position:absolute; bottom:2px; left:50%; transform:translateX(-50%);">` : ''}
+                        </div>
+                        <p>(${USERS.sale_mgr.name})</p>
+                        <p>Sale Manager</p>
+                    ` : ''}
+                </td>
+                <td style="width:33%;">
+                    <p>ผู้อนุมัติ</p>
+                    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:5px;">
+                        <span>[${r.status === 'approved' ? '✓' : ' '}] อนุมัติ</span>
+                        <span>[${r.status === 'rejected' ? '✓' : ' '}] ไม่อนุมัติ</span>
+                    </div>
+                    <div style="height:60px; border-bottom:1px solid #000; margin:0 20px; position:relative;">
+                        ${!isHigh ? 
+                            (d.manager_sig ? `<img src="${d.manager_sig}" style="height:55px; position:absolute; bottom:2px; left:50%; transform:translateX(-50%);">` : '') :
+                            (d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:55px; position:absolute; bottom:2px; left:50%; transform:translateX(-50%);">` : '')
+                        }
+                    </div>
+                    <p>(${!isHigh ? USERS.sale_mgr.name : USERS.cmo.name})</p>
+                    <p>${!isHigh ? 'Sale Manager' : 'Chief Marketing Officer'}</p>
+                    ${r.approved_at ? `<p style="font-size:10px;">อนุมัติเมื่อ ${new Date(r.approved_at).toLocaleString('th-TH')}</p>` : ''}
+                </td>
             </tr>
         </table>`;
-    document.getElementById('printArea').innerHTML = `<div style="padding:60px; font-family:Sarabun,sans-serif;"><h2 style="text-align:center;">ใบขออนุมัติส่วนลด</h2><p>ชื่อลูกค้า: ${r.customer_name} (HN: ${r.hn})</p><p>หัตถการ: ${d.procedure_name || '-'}</p><table border="1" style="width:100%; border-collapse:collapse; margin-top:20px; text-align:center;"><tr><th>ยอดเต็ม</th><th>ลด %</th><th>ลูกค้าจ่าย</th></tr><tr><td>${(r.final_price+r.discount_amount).toLocaleString()}</td><td>${r.discount_pct}%</td><td><strong>${r.final_price.toLocaleString()}</strong></td></tr></table>${sigTable}</div>`;
+
+    document.getElementById('printArea').innerHTML = `
+        <div style="padding:40px 60px; font-family:Sarabun, sans-serif; color:#000; line-height:1.6;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <img src="${document.getElementById('hdr-logo').src}" style="height:60px;">
+                    <p style="font-size:12px; font-weight:bold; margin-top:5px;">โรงพยาบาลเฉพาะทางศัลยกรรมตกแต่งขนาดเล็กเคอาร์เอ็ม</p>
+                    <p style="font-size:11px;">บริษัท เคโอเอ็ม คอร์ป จำกัด</p>
+                </div>
+                <div style="text-align:right; font-size:14px;">วันที่ ${today}</div>
+            </div>
+
+            <table style="width:100%; margin-top:20px; font-size:14px; border-collapse:collapse;">
+                <tr><td width="80"><strong>ส่วนงาน</strong></td><td>ฝ่ายการตลาดและฝ่ายขาย</td></tr>
+                <tr><td><strong>เรื่อง</strong></td><td>ขออนุมัติส่วนลดรายการ</td></tr>
+                <tr><td><strong>เรียน</strong></td><td>ผู้บริหาร/กรรมการ/ผู้จัดการที่มีส่วนเกี่ยวข้อง</td></tr>
+            </table>
+
+            <p style="text-indent:50px; margin-top:25px; font-size:15px;">
+                เนื่องด้วยทางฝ่ายการตลาดและฝ่ายขาย มีความประสงค์ที่จะขออนุมัติส่วนลดรายการให้กับ 
+                <strong>${r.customer_name}</strong> HN <strong>${r.hn}</strong> 
+                กำหนดวันที่ ${d.opdate || '-'} รายละเอียดตามตารางด้านล่าง
+            </p>
+            
+            <p style="font-size:14px;"><strong>เหตุผลเพิ่มเติม:</strong> ${r.reason || 'สวนลดลูกค้าพิเศษ'}</p>
+
+            <table border="1" style="width:100%; border-collapse:collapse; margin-top:15px; font-size:14px; text-align:center;">
+                <tr style="background:#f2f2f2;">
+                    <th style="padding:8px;">รายการ</th>
+                    <th style="padding:8px;">ราคาเต็ม (฿)</th>
+                    <th style="padding:8px;">ส่วนลด %</th>
+                    <th style="padding:8px;">ลูกค้าจ่าย (฿)</th>
+                </tr>
+                ${itemRows}
+            </table>
+
+            ${d.approval_note ? `<div style="margin-top:15px; padding:10px; border:1px dashed #000;"><strong>หมายเหตุผู้อนุมัติ:</strong> ${d.approval_note}</div>` : ''}
+
+            <p style="margin-top:25px; text-align:center; font-size:15px;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>
+            
+            ${sigTable}
+        </div>
+    `;
     window.print();
 }
+
+  
 
 // --- SYSTEM ---
 function doLogin() {
