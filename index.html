@@ -18,11 +18,19 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .tab.active{background:var(--cream);color:var(--navy);font-weight:700;}
 .panel{display:none;}.panel.active{display:block;}
 .fw{max-width:850px;margin:28px auto;padding:0 18px 60px;}
-.sec{font-family:'Noto Serif Thai',serif;font-size:11.5px;font-weight:600;color:var(--gold-d);border-bottom:1px solid var(--border);padding-bottom:6px;margin:22px 0 13px;}
+.sec{font-family:'Noto Serif Thai',serif;font-size:11.5px;font-weight:600;color:var(--gold-d);letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:6px;margin:22px 0 13px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;}
 .f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .f label{font-size:11px;font-weight:700;color:var(--navy);}
-.f input,.f select{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;outline:none;}
-.sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-family:'Sarabun',sans-serif;font-size:14px;outline:none;}
+.doc-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:22px;}
+.dc{border:2px solid var(--border);border-radius:10px;padding:13px 8px;text-align:center;cursor:pointer;background:#fff;}
+.dc.sel{border-color:var(--gold);background:#FDF8F0;}
+.form-section{display:none;}.form-section.active{display:block;}
+.items-table{width:100%;border-collapse:collapse;margin-top:10px;}
+.items-table th{background:#000;color:#fff;font-size:11px;padding:9px 10px;text-align:left;}
+.sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .sum-bar .v{font-size:20px;font-weight:700;color:#fff;font-family:'Noto Serif Thai',serif;}
 .btn-submit{width:100%;margin-top:22px;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-weight:700;cursor:pointer;}
 .card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;padding:15px;box-shadow:var(--sh);}
@@ -30,12 +38,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .badge.pending_mgr{background:#FEF3C7;color:#92400E;}
 .badge.pending_cmo{background:#E0E7FF;color:#3730A3;}
 .badge.approved{background:#D1FAE5;color:#065F46;}
-/* Report Styles */
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.kpi-card{background:#fff;padding:15px;border-radius:10px;border:1px solid var(--border);text-align:center;}
-.kpi-card label{font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:5px;}
-.kpi-card .val{font-size:18px;font-weight:700;color:var(--navy);}
-.rpt-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:13px;}
+.rpt-table{width:100%;border-collapse:collapse;background:#fff;font-size:13px;border-radius:10px;overflow:hidden;}
 .rpt-table th{background:var(--navy);color:#fff;padding:10px;text-align:left;}
 .rpt-table td{padding:10px;border-bottom:1px solid var(--cream2);}
 .modal-back{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;}
@@ -63,63 +66,96 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 
 <div id="app-body" style="display:none;">
     <div class="hdr">
-        <h1>ระบบขออนุมัติส่วนลด KRM</h1>
+        <h1 style="color:#fff;">KRM Approval System</h1>
         <div style="margin-left:auto;color:#fff;display:flex;align-items:center;gap:15px;">
-            <span id="user-badge" style="font-size:12px;background:rgba(255,255,255,.1);padding:5px 12px;border-radius:20px;"></span>
-            <button onclick="logout()" style="background:none;border:1px solid #fff;color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;">ออก</button>
+            <span id="user-badge" style="font-size:12px;"></span>
+            <button onclick="logout()" style="background:none;border:1px solid #fff;color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;">ออก</button>
         </div>
     </div>
 
     <div class="tabs">
         <button class="tab active" id="tab-btn-form" onclick="switchTab('form')">📋 ยื่นคำขอ</button>
-        <button class="tab" id="tab-btn-approve" onclick="switchTab('approve')">✅ รายการอนุมัติ</button>
+        <button class="tab" id="tab-btn-approve" onclick="switchTab('approve')">✅ อนุมัติ / ติดตาม</button>
         <button class="tab" id="tab-btn-report" onclick="switchTab('report')">📊 รายงาน</button>
     </div>
 
     <div id="tab-form" class="panel active">
         <div class="fw">
-            <div class="sec">ข้อมูลลูกค้า</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+            <div class="sec">เลือกประเภทใบขออนุมัติ</div>
+            <div class="doc-picker">
+                <div class="dc sel" data-type="mixed" onclick="selType('mixed')">📋 รายการรวม</div>
+                <div class="dc" data-type="room" onclick="selType('room')">🛏️ ห้องพัก</div>
+                <div class="dc" data-type="procedure" onclick="selType('procedure')">💉 หัตถการ</div>
+                <div class="dc" data-type="gift" onclick="selType('gift')">🎁 ของแถม</div>
+            </div>
+
+            <div class="sec">ข้อมูลลูกค้า & ผู้จัดทำ</div>
+            <div class="g2">
                 <div class="f"><label>HN</label><input id="f-hn" placeholder="Kxxxxxx"></div>
                 <div class="f"><label>ชื่อลูกค้า</label><input id="f-name"></div>
             </div>
-            <div class="f"><label>ชื่อพนักงานขาย / ผู้จัดทำ (Sale Name)</label><input id="f-sale" placeholder="ระบุชื่อผู้จัดทำเคสนี้"></div>
-            
-            <div class="sec">ข้อมูลส่วนลด</div>
-            <div class="f"><label>ราคาเต็ม (฿)</label><input id="p-full" type="number" oninput="calcQuick()"></div>
-            <div class="f"><label>ส่วนลด (%)</label><input id="p-pct" type="number" oninput="calcQuick()"></div>
-            
-            <div class="sum-bar" style="margin-bottom:20px;">
-                <div><label style="color:var(--gold-l);font-size:10px;">ส่วนลด</label><div class="v" id="sum-disc">0</div></div>
-                <div><label style="color:var(--gold-l);font-size:10px;">ลูกค้าจ่าย</label><div class="v" id="sum-final">0</div></div>
+            <div class="f"><label>ชื่อ Sale (ระบุชื่อจริงคนทำเคส)</label><input id="f-sale" placeholder="พิมพ์ชื่อพนักงานขายที่นี่"></div>
+
+            <div id="sec-mixed" class="form-section active">
+                <div class="sec">รายการส่วนลด</div>
+                <table class="items-table">
+                    <thead><tr><th>รายการ</th><th>ราคาเต็ม</th><th>ลด %</th><th>ลูกค้าจ่าย</th></tr></thead>
+                    <tbody id="mixed-items-body">
+                        </tbody>
+                </table>
+                <button onclick="addItem()" style="margin-top:10px; padding:5px 10px; cursor:pointer;">+ เพิ่มรายการ</button>
+            </div>
+
+            <div id="sec-room" class="form-section">
+                <div class="sec">รายละเอียดห้องพัก</div>
+                <div class="g3">
+                    <div class="f"><label>เช็คอิน</label><input id="r-ci" type="date"></div>
+                    <div class="f"><label>เช็คเอาต์</label><input id="r-co" type="date"></div>
+                    <div class="f"><label>ราคา/คืน (฿)</label><input id="r-ppn" type="number" oninput="calcRoom()"></div>
+                </div>
+                <div class="f"><label>ส่วนลด (%)</label><input id="r-pct" type="number" oninput="calcRoom()"></div>
+            </div>
+
+            <div id="sec-procedure" class="form-section">
+                <div class="sec">รายละเอียดหัตถการ</div>
+                <div class="f"><label>ชื่อหัตถการ</label><input id="p-name" placeholder="เช่น เสริมจมูก Open"></div>
+                <div class="g2">
+                    <div class="f"><label>ราคาเต็ม (฿)</label><input id="p-full" type="number" oninput="calcProc()"></div>
+                    <div class="f"><label>ส่วนลด (%)</label><input id="p-pct" type="number" oninput="calcProc()"></div>
+                </div>
+            </div>
+
+            <div id="sec-gift" class="form-section">
+                <div class="sec">ของแถม / สิทธิพิเศษ</div>
+                <textarea id="g-items" style="width:100%; min-height:80px;" placeholder="ระบุรายการของแถม..."></textarea>
+                <div class="f"><label>มูลค่ารวม (฿)</label><input id="g-val" type="number" oninput="calcGift()"></div>
+            </div>
+
+            <div class="sum-bar">
+                <div><label>ส่วนลด</label><div class="v" id="sum-disc">0</div></div>
+                <div><label>ลูกค้าจ่าย</label><div class="v" id="sum-final">0</div></div>
             </div>
 
             <div class="sec">ลายเซ็นผู้จัดทำ</div>
-            <div style="border:2px dashed var(--border); background:#fff; height:130px; border-radius:10px; overflow:hidden;">
-                <canvas id="creatorCanvas" width="700" height="130" style="width:100%; height:100%; cursor:crosshair;"></canvas>
+            <div style="border:2px dashed var(--border); background:#fff; height:120px; border-radius:10px;">
+                <canvas id="creatorCanvas" width="700" height="120" style="width:100%; height:100%;"></canvas>
             </div>
-            <button onclick="clearCreatorSig()" style="margin-top:8px;padding:5px 10px;font-size:11px;">ล้างลายเซ็น</button>
+            <button onclick="clearCreatorSig()" style="margin-top:10px;">ล้างลายเซ็น</button>
 
             <button class="btn-submit" onclick="submitRequest()">📤 ส่งคำขออนุมัติ</button>
         </div>
     </div>
 
     <div id="tab-approve" class="panel">
-        <div class="fw">
-            <div id="req-list"></div>
-        </div>
+        <div class="fw"><div id="req-list"></div></div>
     </div>
 
     <div id="tab-report" class="panel">
         <div class="fw">
-            <div style="display:flex; gap:10px; margin-bottom:20px; align-items:flex-end;">
-                <div class="f"><label>เดือน</label><select id="rpt-month" onchange="buildReport()"></select></div>
-                <div class="f"><label>ปี</label><select id="rpt-year" onchange="buildReport()"></select></div>
-            </div>
-            <div class="kpi-row" id="rpt-kpis"></div>
-            <div class="sec">สรุปรายการรายเดือน</div>
+            <div class="sec">สรุปผลงานรายเดือน</div>
+            <div id="rpt-kpis" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;"></div>
             <table class="rpt-table">
-                <thead><tr><th>วันที่</th><th>HN</th><th>ลูกค้า</th><th>ส่วนลด</th><th>ผู้จัดทำ</th><th>สถานะ</th></tr></thead>
+                <thead><tr><th>วันที่</th><th>HN</th><th>ลูกค้า</th><th>ส่วนลด</th><th>พนักงาน</th><th>สถานะ</th></tr></thead>
                 <tbody id="rpt-tbody"></tbody>
             </table>
         </div>
@@ -128,12 +164,12 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 
 <div id="sigModal" class="modal-back">
   <div class="modal-box">
-    <h3 id="sig-title" style="margin-bottom:10px;">ลงลายเซ็นอนุมัติ</h3>
-    <input id="pin-input" type="password" placeholder="ใส่ PIN 4 หลัก" maxlength="4" style="width:100%;padding:12px;margin-bottom:15px;text-align:center;font-size:24px;border:1.5px solid var(--border);border-radius:8px;">
-    <canvas id="sigCanvas" width="450" height="170"></canvas>
-    <div style="display:flex;gap:10px;margin-top:20px;">
-        <button onclick="confirmSig()" style="flex:2;padding:12px;background:var(--success);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">✅ ยืนยันการเซ็น</button>
-        <button onclick="closeSigModal()" style="flex:1;padding:12px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ยกเลิก</button>
+    <h3 id="sig-title">เซ็นอนุมัติ</h3>
+    <input id="pin-input" type="password" placeholder="ใส่ PIN 4 หลัก" maxlength="4" style="width:100%; padding:15px; text-align:center; font-size:24px; margin:15px 0;">
+    <canvas id="sigCanvas" width="450" height="170" style="border:1px solid #ccc;"></canvas>
+    <div style="display:flex; gap:10px; margin-top:20px;">
+        <button onclick="confirmSig()" style="flex:1; padding:15px; background:var(--success); color:#fff; border:none; border-radius:8px; cursor:pointer;">ยืนยัน</button>
+        <button onclick="closeSigModal()" style="flex:1; padding:15px; background:#ccc; border:none; border-radius:8px; cursor:pointer;">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -147,223 +183,219 @@ const SUPABASE_URL = 'https://hnpccpuwxrebxangdane.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGNjcHV3eHJlYnhhbmdkYW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTAxNTAsImV4cCI6MjA4OTgyNjE1MH0.34CqrdqVeHF6_RUArM2UIIf3oefqrHeMwuiNJwEV1Vs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const EMAILJS_PUBLIC_KEY = 'M3GFyEbVcO48C7wy0';
-const EMAILJS_SERVICE_ID = 'service_k3m1kzl';
-const EMAILJS_TEMPLATE_ID = 'template_o5c9od9';
-emailjs.init(EMAILJS_PUBLIC_KEY);
-
 const USERS = {
-    sale_mgr: { name: 'นภา ชำนาญรบ', role: 'manager', pin: '1234', email: 'chnabha2529@gmail.com' },
+    sale_mgr: { name: 'นภา ชำนาญรบ', role: 'manager', pin: '1234', email: 'Salesurgery@krmhospital-inter.com' },
     cmo: { name: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo', pin: '5678', email: 'Sakulchai.t@krmhospital-inter.com' }
 };
 
 const LOGIN_ACCOUNTS = [
-    { username: 'sale', password: 'sale1234', label: 'Sale Staff Team', role: 'sale' },
+    { username: 'sale', password: 'sale1234', label: 'Sale Team', role: 'sale' },
     { username: 'napa', password: 'mgr1234', label: 'นภา ชำนาญรบ', role: 'manager' },
     { username: 'cmo', password: 'cmo5678', label: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo' }
 ];
 
-let currentUser = null;
-let allReqs = [];
-let sigPendingId = null;
+let currentUser = null, allReqs = [], sigPendingId = null, curType = 'mixed';
 
-// --- EMAIL SYSTEM ---
-function sendEmailNotification(r, targetRole, customMsg = "") {
-    const target = targetRole === 'manager' ? USERS.sale_mgr : USERS.cmo;
-    const params = {
-        to_email: target.email,
-        to_role: targetRole === 'manager' ? 'Sale Manager' : 'CMO',
-        customer_name: r.customer_name,
-        hn: r.hn,
-        sale_agent: r.sale_agent,
-        discount_pct: r.discount_pct + '%',
-        final_price: r.final_price.toLocaleString() + ' ฿',
-        custom_message: customMsg,
-        app_url: window.location.origin
-    };
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params).catch(console.error);
+// --- INITIALIZE ---
+emailjs.init('M3GFyEbVcO48C7wy0');
+
+function selType(t) {
+    curType = t;
+    document.querySelectorAll('.dc').forEach(el => el.classList.toggle('sel', el.dataset.type === t));
+    document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+    document.getElementById('sec-'+t).classList.add('active');
+    resetFormSum();
 }
 
-// --- LOGIC FUNCTIONS ---
-function calcQuick() {
+// --- CALCULATION ---
+function calcProc() {
     let full = parseFloat(document.getElementById('p-full').value) || 0;
     let pct = parseFloat(document.getElementById('p-pct').value) || 0;
-    let disc = (full * pct) / 100;
+    updateSum(full, pct);
+}
+
+function calcRoom() {
+    let ci = new Date(document.getElementById('r-ci').value), co = new Date(document.getElementById('r-co').value);
+    let ppn = parseFloat(document.getElementById('r-ppn').value) || 0, pct = parseFloat(document.getElementById('r-pct').value) || 0;
+    if(co > ci) {
+        let nights = (co - ci) / 86400000;
+        updateSum(ppn * nights, pct);
+    }
+}
+
+function calcGift() { updateSum(parseFloat(document.getElementById('g-val').value) || 0, 0); }
+
+function updateSum(total, pct) {
+    let disc = (total * pct) / 100;
     document.getElementById('sum-disc').textContent = disc.toLocaleString();
-    document.getElementById('sum-final').textContent = (full - disc).toLocaleString();
+    document.getElementById('sum-final').textContent = (total - disc).toLocaleString();
 }
 
-async function submitRequest() {
-    let hn = document.getElementById('f-hn').value;
-    let name = document.getElementById('f-name').value;
-    let saleName = document.getElementById('f-sale').value; // ดึงชื่อที่พิมพ์ใหม่มาใช้
-    let pct = parseFloat(document.getElementById('p-pct').value) || 0;
-    let full = parseFloat(document.getElementById('p-full').value) || 0;
+function resetFormSum() {
+    document.getElementById('sum-disc').textContent = '0';
+    document.getElementById('sum-final').textContent = '0';
+}
 
-    if(!hn || !name || !saleName || !full) return showToast("⚠️ กรุณากรอกข้อมูลให้ครบ");
+// --- CORE ACTIONS ---
+async function submitRequest() {
+    let hn = document.getElementById('f-hn').value, name = document.getElementById('f-name').value, sale = document.getElementById('f-sale').value;
+    if(!hn || !name || !sale) return alert("กรุณาระบุข้อมูล HN, ลูกค้า และพนักงานขาย");
+
+    let discText = document.getElementById('sum-disc').textContent.replace(/,/g,'');
+    let finalText = document.getElementById('sum-final').textContent.replace(/,/g,'');
+    let pct = 0;
+    if(curType === 'procedure') pct = parseFloat(document.getElementById('p-pct').value) || 0;
+    if(curType === 'room') pct = parseFloat(document.getElementById('r-pct').value) || 0;
 
     let status = 'pending_mgr';
     if(currentUser.role === 'manager' && pct > 10) status = 'pending_cmo';
 
     const payload = {
-        hn, customer_name: name, sale_agent: saleName,
-        original_price: full, discount_pct: pct,
-        final_price: full - ((full * pct) / 100),
+        hn, customer_name: name, sale_agent: sale, doc_type: curType,
+        discount_pct: pct, discount_amount: parseFloat(discText), final_price: parseFloat(finalText),
         status: status,
-        doc_data: {
-            creator_name: saleName, // บันทึกชื่อที่ Sale พิมพ์ลงไปในช่อง "ผู้จัดทำ"
-            creator_sig: document.getElementById('creatorCanvas').toDataURL()
+        doc_data: { 
+            creator_name: sale, 
+            creator_sig: document.getElementById('creatorCanvas').toDataURL(),
+            procedure_name: document.getElementById('p-name').value
         }
     };
 
     const { data, error } = await sb.from('approval_requests').insert(payload).select().single();
     if(!error) {
-        showToast("✅ ส่งคำขอเรียบร้อย");
-        if (data.status === 'pending_mgr') sendEmailNotification(data, 'manager');
-        else if (data.status === 'pending_cmo') sendEmailNotification(data, 'cmo');
+        showToast("ส่งคำขอเรียบร้อยแล้ว");
+        sendEmail(data, 'manager');
         resetForm();
-        switchTab('approve');
     }
 }
 
 async function doApprove(id, sig, pin) {
     const r = allReqs.find(x => x.id === id);
     let newStatus = '';
-    let updateData = { doc_data: { ...r.doc_data } };
-
     if(currentUser.role === 'manager') {
-        if(pin !== USERS.sale_mgr.pin) return alert("PIN ไม่ถูกต้อง");
+        if(pin !== USERS.sale_mgr.pin) return alert("PIN ผิด");
         newStatus = r.discount_pct <= 10 ? 'approved' : 'pending_cmo';
-        if(newStatus === 'pending_cmo') sendEmailNotification(r, 'cmo', "Manager รับทราบแล้ว รอ CMO อนุมัติ final");
-        updateData.manager_name = USERS.sale_mgr.name;
-        updateData.doc_data.manager_sig = sig;
+        if(newStatus === 'pending_cmo') sendEmail(r, 'cmo', "Manager รับทราบแล้ว รอ CMO อนุมัติ final");
     } else if(currentUser.role === 'cmo') {
-        if(pin !== USERS.cmo.pin) return alert("PIN ไม่ถูกต้อง");
+        if(pin !== USERS.cmo.pin) return alert("PIN ผิด");
         newStatus = 'approved';
-        updateData.cmo_name = USERS.cmo.name;
-        updateData.doc_data.cmo_sig = sig;
-        updateData.approved_at = new Date();
     }
 
-    const { error } = await sb.from('approval_requests').update({ status: newStatus, ...updateData }).eq('id', id);
-    if(!error) { closeSigModal(); loadReqs(); showToast("✅ สำเร็จ"); }
+    const { error } = await sb.from('approval_requests').update({ 
+        status: newStatus, 
+        manager_name: currentUser.role === 'manager' ? USERS.sale_mgr.name : r.manager_name,
+        cmo_name: currentUser.role === 'cmo' ? USERS.cmo.name : r.cmo_name,
+        doc_data: { ...r.doc_data, [currentUser.role+'_sig']: sig }
+    }).eq('id', id);
+    
+    if(!error) { closeSigModal(); loadReqs(); showToast("ดำเนินการสำเร็จ"); }
 }
 
-// --- REPORT FUNCTIONS ---
-function initReportControls() {
-    const m = document.getElementById('rpt-month'), y = document.getElementById('rpt-year');
-    const now = new Date();
-    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-    m.innerHTML = months.map((name, i) => `<option value="${i}" ${i === now.getMonth() ? 'selected' : ''}>${name}</option>`).join('');
-    y.innerHTML = [0, 1, 2].map(off => `<option value="${now.getFullYear() - off}">${now.getFullYear() - off + 543}</option>`).join('');
-}
-
-function buildReport() {
-    const mo = parseInt(document.getElementById('rpt-month').value);
-    const yr = parseInt(document.getElementById('rpt-year').value);
-    const filtered = allReqs.filter(r => {
-        const d = new Date(r.created_at);
-        return d.getMonth() === mo && d.getFullYear() === yr;
+function sendEmail(r, role, msg = "") {
+    const target = USERS[role === 'manager' ? 'sale_mgr' : 'cmo'];
+    emailjs.send('service_k3m1kzl', 'template_o5c9od9', {
+        to_email: target.email, to_role: target.role,
+        customer_name: r.customer_name, hn: r.hn, sale_agent: r.sale_agent,
+        discount_pct: r.discount_pct + '%', final_price: r.final_price.toLocaleString(),
+        custom_message: msg, app_url: window.location.origin
     });
-
-    const approved = filtered.filter(r => r.status === 'approved');
-    const totalDisc = approved.reduce((s, r) => s + (r.original_price - r.final_price), 0);
-    const totalRev = approved.reduce((s, r) => s + r.final_price, 0);
-
-    document.getElementById('rpt-kpis').innerHTML = `
-        <div class="kpi-card"><label>คำขอทั้งหมด</label><div class="val">${filtered.length}</div></div>
-        <div class="kpi-card"><label>อนุมัติแล้ว</label><div class="val" style="color:var(--success)">${approved.length}</div></div>
-        <div class="kpi-card"><label>รวมส่วนลด</label><div class="val" style="color:var(--danger)">${totalDisc.toLocaleString()}</div></div>
-        <div class="kpi-card"><label>ยอดจ่ายสุทธิ</label><div class="val" style="color:var(--navy)">${totalRev.toLocaleString()}</div></div>
-    `;
-
-    document.getElementById('rpt-tbody').innerHTML = filtered.map(r => `
-        <tr>
-            <td>${new Date(r.created_at).toLocaleDateString('th-TH')}</td>
-            <td>${r.hn}</td>
-            <td>${r.customer_name}</td>
-            <td>${r.discount_pct}%</td>
-            <td>${r.sale_agent}</td>
-            <td><span class="badge ${r.status}">${r.status}</span></td>
-        </tr>
-    `).join('') || '<tr><td colspan="6" align="center">ไม่มีข้อมูล</td></tr>';
 }
 
-// --- UI & PRINT ---
+// --- VIEW & UI ---
 async function loadReqs() {
-    const { data, error } = await sb.from('approval_requests').select('*').order('created_at', {ascending: false});
-    if(!error) { allReqs = data; renderList(); if(document.getElementById('tab-report').classList.contains('active')) buildReport(); }
+    const { data } = await sb.from('approval_requests').select('*').order('created_at', {ascending: false});
+    allReqs = data || [];
+    renderList();
+    if(document.getElementById('tab-report').classList.contains('active')) buildReport();
 }
 
 function renderList() {
     const list = document.getElementById('req-list');
     list.innerHTML = allReqs.map(r => `
         <div class="card">
-            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between;">
                 <strong>${r.customer_name} (HN: ${r.hn})</strong>
                 <span class="badge ${r.status}">${r.status}</span>
             </div>
-            <p style="font-size:13px;color:var(--muted);">พนักงานขาย: ${r.sale_agent} | ส่วนลด ${r.discount_pct}%</p>
-            <div style="margin-top:12px;display:flex;gap:10px;">
-                ${(r.status === 'pending_mgr' && currentUser.role === 'manager') || (r.status === 'pending_cmo' && currentUser.role === 'cmo') ? `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">✍️ เซ็นอนุมัติ</button>` : ''}
-                <button onclick="printDoc('${r.id}')" style="background:var(--navy);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">🖨️ พิมพ์</button>
+            <p style="font-size:13px; color:var(--muted); margin-top:5px;">ประเภท: ${r.doc_type} | ลด ${r.discount_pct}% | โดย ${r.sale_agent}</p>
+            <div style="margin-top:12px; display:flex; gap:10px;">
+                ${(r.status==='pending_mgr' && currentUser.role==='manager') || (r.status==='pending_cmo' && currentUser.role==='cmo') ? 
+                `<button onclick="openSig('${r.id}')" style="background:var(--success); color:#fff; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">เซ็นอนุมัติ</button>` : ''}
+                <button onclick="printDoc('${r.id}')" style="background:var(--navy); color:#fff; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">พิมพ์</button>
             </div>
         </div>
     `).join('');
 }
 
+function buildReport() {
+    const approved = allReqs.filter(r => r.status === 'approved');
+    document.getElementById('rpt-kpis').innerHTML = `
+        <div style="background:#fff; padding:15px; border-radius:10px; text-align:center; border:1px solid var(--border);"><label style="font-size:10px; color:var(--muted);">ทั้งหมด</label><div style="font-size:20px; font-weight:700;">${allReqs.length}</div></div>
+        <div style="background:#fff; padding:15px; border-radius:10px; text-align:center; border:1px solid var(--border);"><label style="font-size:10px; color:var(--muted);">อนุมัติแล้ว</label><div style="font-size:20px; font-weight:700; color:var(--success);">${approved.length}</div></div>
+        <div style="background:#fff; padding:15px; border-radius:10px; text-align:center; border:1px solid var(--border);"><label style="font-size:10px; color:var(--muted);">ยอดสุทธิรวม</label><div style="font-size:20px; font-weight:700;">${approved.reduce((s,x)=>s+x.final_price,0).toLocaleString()}</div></div>
+    `;
+    document.getElementById('rpt-tbody').innerHTML = allReqs.map(r => `
+        <tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.hn}</td><td>${r.customer_name}</td><td>${r.discount_pct}%</td><td>${r.sale_agent}</td><td>${r.status}</td></tr>
+    `).join('');
+}
+
 function printDoc(id) {
-    const r = allReqs.find(x => x.id === id);
-    const d = r.doc_data;
-    const isHigh = r.discount_pct > 10;
-    const sigHtml = `
-        <table style="width:100%;margin-top:50px;text-align:center;font-size:12px;color:#000;">
+    const r = allReqs.find(x => x.id === id), d = r.doc_data, isHigh = r.discount_pct > 10;
+    const sigTable = `
+        <table style="width:100%; margin-top:50px; text-align:center; font-size:12px;">
             <tr>
-                <td style="width:33%;"><p>ผู้จัดทำ</p><img src="${d.creator_sig}" style="height:50px;border-bottom:1px solid #000;"><p>(${d.creator_name})</p></td>
-                <td style="width:33%;">${isHigh ? `<p>ผู้รับทราบ/ตรวจสอบ</p>${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}<p>(${USERS.sale_mgr.name})</p>` : ''}</td>
-                <td style="width:33%;"><p>ผู้อนุมัติ</p>${!isHigh ? `${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}<p>(${USERS.sale_mgr.name})</p>` : `${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}<p>(${USERS.cmo.name})</p>`}</td>
+                <td><p>ผู้จัดทำ</p><img src="${d.creator_sig}" style="height:50px;"><p>(${d.creator_name})</p></td>
+                <td>${isHigh ? `<p>ผู้รับทราบ</p>${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;">` : '____________'}<p>(${USERS.sale_mgr.name})</p>` : ''}</td>
+                <td><p>ผู้อนุมัติ</p>${!isHigh ? `${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;">` : '____________'}<p>(${USERS.sale_mgr.name})</p>` : `${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;">` : '____________'}<p>(${USERS.cmo.name})</p>`}</td>
             </tr>
         </table>`;
-    document.getElementById('printArea').innerHTML = `<div style="padding:60px;font-family:Sarabun,sans-serif;"><h2 style="text-align:center;">ใบขออนุมัติส่วนลด</h2><p><strong>HN:</strong> ${r.hn} | <strong>ชื่อลูกค้า:</strong> ${r.customer_name}</p><p><strong>ผู้จัดทำ:</strong> ${r.sale_agent}</p><table border="1" style="width:100%;border-collapse:collapse;text-align:center;margin-top:20px;"><tr><th>ราคาเต็ม</th><th>ลด %</th><th>ลูกค้าจ่าย</th></tr><tr><td>${r.original_price.toLocaleString()}</td><td>${r.discount_pct}%</td><td><strong>${r.final_price.toLocaleString()}</strong></td></tr></table>${sigHtml}</div>`;
+    document.getElementById('printArea').innerHTML = `<div style="padding:60px; font-family:Sarabun,sans-serif;"><h2 style="text-align:center;">ใบขออนุมัติส่วนลด</h2><p>ชื่อลูกค้า: ${r.customer_name} (HN: ${r.hn})</p><p>หัตถการ: ${d.procedure_name || '-'}</p><table border="1" style="width:100%; border-collapse:collapse; margin-top:20px; text-align:center;"><tr><th>ยอดเต็ม</th><th>ลด %</th><th>ลูกค้าจ่าย</th></tr><tr><td>${(r.final_price+r.discount_amount).toLocaleString()}</td><td>${r.discount_pct}%</td><td><strong>${r.final_price.toLocaleString()}</strong></td></tr></table>${sigTable}</div>`;
     window.print();
 }
 
-// --- UTILITIES ---
+// --- SYSTEM ---
 function doLogin() {
     const u = document.getElementById('login-user').value, p = document.getElementById('login-pass').value;
     const found = LOGIN_ACCOUNTS.find(a => a.username === u && a.password === p);
     if(found) {
-        currentUser = found; document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-body').style.display = 'block';
+        currentUser = found; document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-body').style.display = 'block';
         document.getElementById('user-badge').textContent = `${found.label} (${found.role})`;
-        switchTab(found.role === 'sale' ? 'form' : 'approve'); initPads();
-    } else document.getElementById('login-error').textContent = "❌ ชื่อผู้ใช้หรือรหัสผ่านผิด";
+        switchTab(found.role === 'sale' ? 'form' : 'approve'); initSigPads();
+    } else alert("ล็อกอินผิดพลาด");
 }
 function logout() { location.reload(); }
 function switchTab(t) {
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab, .panel').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-btn-'+t).classList.add('active');
     document.getElementById('tab-'+t).classList.add('active');
-    if(t === 'report') { initReportControls(); buildReport(); } else loadReqs();
+    loadReqs();
 }
 function openSig(id) { sigPendingId = id; document.getElementById('pin-input').value = ''; document.getElementById('sigModal').classList.add('open'); }
 function closeSigModal() { document.getElementById('sigModal').classList.remove('open'); }
-function confirmSig() { const pin = document.getElementById('pin-input').value, sig = document.getElementById('sigCanvas').toDataURL(); doApprove(sigPendingId, sig, pin); }
-function resetForm() { ['f-hn','f-name','f-sale','p-full','p-pct'].forEach(id => document.getElementById(id).value = ''); calcQuick(); document.getElementById('creatorCanvas').getContext('2d').clearRect(0,0,700,130); }
+function confirmSig() { doApprove(sigPendingId, document.getElementById('sigCanvas').toDataURL(), document.getElementById('pin-input').value); }
 function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
-function initPads() {
-    [document.getElementById('creatorCanvas'), document.getElementById('sigCanvas')].forEach(c => {
-        let drawing = false; const ctx = c.getContext('2d');
-        const getPos = (e) => { const rect = c.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: clientX - rect.left, y: clientY - rect.top }; };
+function resetForm() { ['f-hn','f-name','f-sale','p-name','p-full','p-pct','r-ci','r-co','r-ppn','r-pct','g-items','g-val'].forEach(id => {let e=document.getElementById(id); if(e) e.value='';}); resetFormSum(); }
+
+function initSigPads() {
+    [document.getElementById('creatorCanvas'), document.getElementById('sigCanvas')].forEach(canvas => {
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+        };
         const start = (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
         const move = (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
         const end = () => drawing = false;
-        c.addEventListener('mousedown', start); c.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
-        c.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); }); c.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }); window.addEventListener('touchend', end);
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); }); canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }); canvas.addEventListener('touchend', end);
         ctx.strokeStyle = '#1A2540'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
     });
 }
-function clearCreatorSig() { document.getElementById('creatorCanvas').getContext('2d').clearRect(0,0,700,130); }
+function clearCreatorSig() { document.getElementById('creatorCanvas').getContext('2d').clearRect(0,0,700,120); }
 </script>
 </body>
 </html>
