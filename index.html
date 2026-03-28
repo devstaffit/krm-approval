@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KRM – ระบบขออนุมัติส่วนลด (V2)</title>
+<title>KRM – ระบบขออนุมัติส่วนลด (Full System V2.2)</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
-/* --- Style คงเดิมตามต้นฉบับของคุณ --- */
+/* --- Design & Branded Colors --- */
 :root{--gold:#B8955A;--gold-l:#D4AF7A;--gold-d:#8A6C3A;--navy:#1A2540;--navy2:#243052;--cream:#FAF7F2;--cream2:#F0EBE0;--text:#2C2C2C;--muted:#7A7A7A;--border:#D9CEB8;--success:#1E6E47;--danger:#C0392B;--sh:0 4px 24px rgba(26,37,64,.10);}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
@@ -22,14 +22,14 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .sec{font-family:'Noto Serif Thai',serif;font-size:11.5px;font-weight:600;color:var(--gold-d);border-bottom:1px solid var(--border);padding-bottom:6px;margin:22px 0 13px;}
 .f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .f label{font-size:11px;font-weight:700;color:var(--navy);}
-.f input,.f select{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;}
+.f input{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;outline:none;}
 .sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .sum-bar .v{font-size:20px;font-weight:700;color:#fff;font-family:'Noto Serif Thai',serif;}
 .btn-submit{width:100%;margin-top:22px;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-weight:700;cursor:pointer;}
 .card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;padding:15px;box-shadow:var(--sh);}
 .badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;}
-.badge.pending_mgr{background:#FEF3C7;color:#92400E;} /* รอ Manager */
-.badge.pending_cmo{background:#E0E7FF;color:#3730A3;} /* รอ CMO */
+.badge.pending_mgr{background:#FEF3C7;color:#92400E;}
+.badge.pending_cmo{background:#E0E7FF;color:#3730A3;}
 .badge.approved{background:#D1FAE5;color:#065F46;}
 .modal-back{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;}
 .modal-back.open{display:flex;}
@@ -70,14 +70,14 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 
     <div id="tab-form" class="panel active">
         <div class="fw">
-            <div class="sec">ข้อมูลลูกค้า</div>
+            <div class="sec">ข้อมูลลูกค้า </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                 <div class="f"><label>HN</label><input id="f-hn" placeholder="Kxxxxxx"></div>
                 <div class="f"><label>ชื่อลูกค้า</label><input id="f-name"></div>
             </div>
             <div class="f"><label>ชื่อพนักงานขาย (Sale)</label><input id="f-sale"></div>
             
-            <div class="sec">ข้อมูลส่วนลด</div>
+            <div class="sec">ข้อมูลส่วนลด [cite: 9]</div>
             <div class="f"><label>ราคาเต็ม (฿)</label><input id="p-full" type="number" oninput="calcQuick()"></div>
             <div class="f"><label>ส่วนลด (%)</label><input id="p-pct" type="number" oninput="calcQuick()"></div>
             
@@ -119,14 +119,19 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 <div id="toast"></div>
 
 <script>
-// --- CONFIGURATION ---
+// ════════════════ CONFIGURATION ════════════════
 const SUPABASE_URL = 'https://hnpccpuwxrebxangdane.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGNjcHV3eHJlYnhhbmdkYW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTAxNTAsImV4cCI6MjA4OTgyNjE1MH0.34CqrdqVeHF6_RUArM2UIIf3oefqrHeMwuiNJwEV1Vs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const EMAILJS_PUBLIC_KEY = 'M3GFyEbVcO48C7wy0';
+const EMAILJS_SERVICE_ID = 'service_k3m1kzl';
+const EMAILJS_TEMPLATE_ID = 'template_o5c9od9';
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
 const USERS = {
-    sale_mgr: { name: 'นภา ชำนาญรบ', role: 'manager', pin: '1234' },
-    cmo: { name: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo', pin: '5678' }
+    sale_mgr: { name: 'นภา ชำนาญรบ', role: 'manager', pin: '1234', email: 'chnabha2529@gmail.com' }, [cite: 13]
+    cmo: { name: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo', pin: '5678', email: 'Sakulchai.t@krmhospital-inter.com' } [cite: 17]
 };
 
 const LOGIN_ACCOUNTS = [
@@ -139,86 +144,71 @@ let currentUser = null;
 let allReqs = [];
 let sigPendingId = null;
 
-// --- INITIALIZE PADS ---
-let creatorCanvas, creatorCtx, sigCanvas, sigCtx;
-let isDrawing = false;
+// ════════════════ EMAIL SYSTEM ════════════════
+function sendEmailNotification(r, targetRole, customMsg = "") {
+    const target = targetRole === 'manager' ? USERS.sale_mgr : USERS.cmo; [cite: 13, 17]
+    const params = {
+        to_email: target.email,
+        to_role: targetRole === 'manager' ? 'Sale Manager' : 'CMO',
+        customer_name: r.customer_name, [cite: 7]
+        hn: r.hn, [cite: 7]
+        sale_agent: r.sale_agent, [cite: 7]
+        discount_pct: r.discount_pct + '%', [cite: 9]
+        final_price: r.final_price.toLocaleString() + ' ฿', [cite: 9]
+        custom_message: customMsg,
+        app_url: window.location.origin
+    };
 
-function initPads() {
-    creatorCanvas = document.getElementById('creatorCanvas');
-    creatorCtx = creatorCanvas.getContext('2d');
-    sigCanvas = document.getElementById('sigCanvas');
-    sigCtx = sigCanvas.getContext('2d');
-
-    [creatorCanvas, sigCanvas].forEach(canvas => {
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDraw);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
-        canvas.addEventListener('touchend', stopDraw);
-    });
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
+        .then(() => console.log(`📧 Email sent to ${target.name}`))
+        .catch((err) => console.error("❌ Email failed:", err));
 }
 
-function startDraw(e) {
-    isDrawing = true;
-    const ctx = e.target ? e.target.getContext('2d') : sigCtx;
-    const rect = (e.target || sigCanvas).getBoundingClientRect();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-}
-
-function draw(e) {
-    if (!isDrawing) return;
-    const canvas = e.target || sigCanvas;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.strokeStyle = '#1A2540';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-}
-
-function stopDraw() { isDrawing = false; }
-
-function clearCreatorSig() { creatorCtx.clearRect(0,0,700,130); }
-function clearSig() { sigCtx.clearRect(0,0,450,170); }
-
-// --- LOGIC FUNCTIONS ---
-
+// ════════════════ CORE LOGIC ════════════════
 function calcQuick() {
     let full = parseFloat(document.getElementById('p-full').value) || 0;
     let pct = parseFloat(document.getElementById('p-pct').value) || 0;
     let disc = (full * pct) / 100;
     document.getElementById('sum-disc').textContent = disc.toLocaleString();
-    document.getElementById('sum-final').textContent = (full - disc).toLocaleString();
+    document.getElementById('sum-final').textContent = (full - disc).toLocaleString(); [cite: 9]
 }
 
 async function submitRequest() {
     let hn = document.getElementById('f-hn').value;
     let name = document.getElementById('f-name').value;
-    let sale = document.getElementById('f-sale').value;
+    let saleName = document.getElementById('f-sale').value;
     let pct = parseFloat(document.getElementById('p-pct').value) || 0;
     let full = parseFloat(document.getElementById('p-full').value) || 0;
 
-    if(!hn || !name || !sale || !full) return showToast("⚠️ กรุณากรอกข้อมูลให้ครบ");
+    if(!hn || !name || !saleName || !full) return showToast("⚠️ กรุณากรอกข้อมูลให้ครบ");
 
     let status = 'pending_mgr';
     if(currentUser.role === 'manager' && pct > 10) status = 'pending_cmo';
 
     const payload = {
-        hn, customer_name: name, sale_agent: sale,
+        hn, customer_name: name, sale_agent: saleName,
         original_price: full, discount_pct: pct,
         final_price: full - ((full * pct) / 100),
         status: status,
         doc_data: {
-            creator_name: currentUser.label, // ล็อกชื่อผู้ล็อกอิน 
-            creator_sig: creatorCanvas.toDataURL()
+            creator_name: currentUser.label, // ล็อกชื่อผู้ล็อกอินป้องกันการเขียนทับ
+            creator_sig: document.getElementById('creatorCanvas').toDataURL()
         }
     };
 
-    const { error } = await sb.from('approval_requests').insert(payload);
+    const { data, error } = await sb.from('approval_requests').insert(payload).select().single();
     if(!error) {
         showToast("✅ ส่งคำขอเรียบร้อย");
+        
+        // เงื่อนไข: Sale submit → email ไป Sale Manager ทุกครั้ง
+        if (data.status === 'pending_mgr') {
+            sendEmailNotification(data, 'manager'); [cite: 13]
+        } 
+        // กรณี Manager จัดทำเอง (> 10%) ส่งตรงหา CMO
+        else if (data.status === 'pending_cmo') {
+            sendEmailNotification(data, 'cmo'); [cite: 17]
+        }
+        
         resetForm();
         switchTab('approve');
     }
@@ -230,12 +220,19 @@ async function doApprove(id, sig, pin) {
     let updateData = { doc_data: { ...r.doc_data } };
 
     if(currentUser.role === 'manager') {
-        if(pin !== USERS.sale_mgr.pin) return alert("PIN ไม่ถูกต้อง");
-        newStatus = r.discount_pct <= 10 ? 'approved' : 'pending_cmo'; // [cite: 35, 36]
+        if(pin !== USERS.sale_mgr.pin) return alert("PIN ไม่ถูกต้อง"); [cite: 13]
+        
+        if(r.discount_pct <= 10) {
+            newStatus = 'approved'; [cite: 36]
+        } else {
+            newStatus = 'pending_cmo';
+            // เงื่อนไข: Manager รับทราบ → email ไป CMO พร้อมข้อความพิเศษ
+            sendEmailNotification(r, 'cmo', "Manager รับทราบแล้ว รอ CMO อนุมัติ final"); [cite: 17]
+        }
         updateData.manager_name = USERS.sale_mgr.name;
         updateData.doc_data.manager_sig = sig;
     } else if(currentUser.role === 'cmo') {
-        if(pin !== USERS.cmo.pin) return alert("PIN ไม่ถูกต้อง");
+        if(pin !== USERS.cmo.pin) return alert("PIN ไม่ถูกต้อง"); [cite: 17]
         newStatus = 'approved';
         updateData.cmo_name = USERS.cmo.name;
         updateData.doc_data.cmo_sig = sig;
@@ -250,8 +247,7 @@ async function doApprove(id, sig, pin) {
     }
 }
 
-// --- UI HELPERS ---
-
+// ════════════════ UI & VIEW ════════════════
 async function loadReqs() {
     const { data, error } = await sb.from('approval_requests').select('*').order('created_at', {ascending: false});
     if(!error) { allReqs = data; renderList(); }
@@ -261,16 +257,16 @@ function renderList() {
     const list = document.getElementById('req-list');
     list.innerHTML = allReqs.map(r => {
         let action = '';
-        if(r.status === 'pending_mgr' && currentUser.role === 'manager') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">เซ็นอนุมัติ</button>`;
-        if(r.status === 'pending_cmo' && currentUser.role === 'cmo') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">เซ็นอนุมัติ (CMO)</button>`;
+        if(r.status === 'pending_mgr' && currentUser.role === 'manager') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">✍️ เซ็นรับทราบ/อนุมัติ</button>`;
+        if(r.status === 'pending_cmo' && currentUser.role === 'cmo') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">✍️ เซ็นอนุมัติ (CMO)</button>`;
         
         return `
             <div class="card">
                 <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-                    <strong>${r.customer_name} (HN: ${r.hn})</strong>
+                    <strong>${r.customer_name} (HN: ${r.hn})</strong> 
                     <span class="badge ${r.status}">${r.status}</span>
                 </div>
-                <p style="font-size:13px;color:var(--muted);">ส่วนลด ${r.discount_pct}% | ยอดจ่าย ${r.final_price.toLocaleString()} ฿</p>
+                <p style="font-size:13px;color:var(--muted);">ส่วนลด ${r.discount_pct}% | ยอดจ่าย ${r.final_price.toLocaleString()} ฿</p> [cite: 9]
                 <p style="font-size:11px;margin-top:5px;">ผู้จัดทำ: ${r.doc_data.creator_name}</p>
                 <div style="margin-top:12px;display:flex;gap:10px;">
                     ${action}
@@ -286,32 +282,33 @@ function printDoc(id) {
     const d = r.doc_data;
     const isHigh = r.discount_pct > 10;
     
-    // ตารางลายเซ็น 3 ช่อง
+    // ตารางลายเซ็น 3 ช่อง (อ้างอิงจาก JPG ที่ให้มา)
     const sigHtml = `
-        <table style="width:100%;margin-top:50px;text-align:center;font-size:12px;">
+        <table style="width:100%;margin-top:50px;text-align:center;font-size:12px;color:#000;">
             <tr>
                 <td style="width:33%;">
-                    <p>ผู้จัดทำ</p>
+                    <p style="font-weight:700;">ผู้จัดทำ</p>
                     <img src="${d.creator_sig}" style="height:50px;border-bottom:1px solid #000;">
-                    <p>(${d.creator_name})</p>
+                    <p style="margin-top:5px;">(${d.creator_name})</p>
                 </td>
                 <td style="width:33%;">
                     ${isHigh ? `
-                        <p>ผู้รับทราบ/ตรวจสอบ</p>
+                        <p style="font-weight:700;">ผู้รับทราบ/ตรวจสอบ</p>
                         ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
-                        <p>(${USERS.sale_mgr.name})</p>
-                        <p>Sale Manager</p>
+                        <p style="margin-top:5px;">(${USERS.sale_mgr.name})</p>
+                        <p style="font-size:10px;">Sale Manager</p>
                     ` : ''}
                 </td>
                 <td style="width:33%;">
-                    <p>ผู้อนุมัติ</p>
+                    <p style="font-weight:700;">ผู้อนุมัติ</p>
                     ${!isHigh ? `
                         ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
-                        <p>(${USERS.sale_mgr.name})</p>
+                        <p style="margin-top:5px;">(${USERS.sale_mgr.name})</p>
+                        <p style="font-size:10px;">Sale Manager</p>
                     ` : `
                         ${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
-                        <p>(${USERS.cmo.name})</p>
-                        <p>Chief Marketing Officer</p>
+                        <p style="margin-top:5px;">(${USERS.cmo.name})</p>
+                        <p style="font-size:10px;">Chief Marketing Officer</p>
                     `}
                 </td>
             </tr>
@@ -319,20 +316,20 @@ function printDoc(id) {
     `;
 
     document.getElementById('printArea').innerHTML = `
-        <div style="padding:50px;background:#fff;color:#000;min-height:100vh;">
-            <h2 style="text-align:center;">ใบขออนุมัติส่วนลด</h2>
-            <div style="margin:30px 0;">
-                <p><strong>ชื่อลูกค้า:</strong> ${r.customer_name} (HN: ${r.hn})</p>
+        <div style="padding:60px;background:#fff;color:#000;min-height:100vh;font-family:Sarabun,sans-serif;">
+            <div style="text-align:right;font-size:12px;">วันที่ ${new Date().toLocaleDateString('th-TH')}</div>
+            <h2 style="text-align:center;margin-top:20px;">ใบขออนุมัติส่วนลด</h2>
+            <div style="margin:40px 0;line-height:2;">
+                <p><strong>ชื่อลูกค้า:</strong> ${r.customer_name} (HN: ${r.hn})</p> 
                 <p><strong>พนักงานขาย:</strong> ${r.sale_agent}</p>
-                <p><strong>รายการ:</strong> ส่วนลดศัลยกรรมตกแต่ง</p>
+                <p><strong>รายละเอียด:</strong> ขอพิจารณาส่วนลดรายการศัลยกรรมตกแต่ง</p>
             </div>
             <table border="1" style="width:100%;border-collapse:collapse;text-align:center;">
-                <tr><th style="padding:10px;">ราคาเต็ม</th><th>ส่วนลด %</th><th>มูลค่าส่วนลด</th><th>ลูกค้าจ่าย</th></tr>
+                <tr style="background:#f4f4f4;"><th style="padding:10px;">ราคาเต็ม</th><th>ส่วนลด %</th><th>ลูกค้าจ่าย</th></tr>
                 <tr>
-                    <td style="padding:10px;">${r.original_price.toLocaleString()}</td>
-                    <td>${r.discount_pct}%</td>
-                    <td>${(r.original_price - r.final_price).toLocaleString()}</td>
-                    <td><strong>${r.final_price.toLocaleString()}</strong></td>
+                    <td style="padding:15px;">${r.original_price.toLocaleString()} ฿</td> [cite: 9]
+                    <td>${r.discount_pct}%</td> [cite: 9]
+                    <td><strong>${r.final_price.toLocaleString()} ฿</strong></td> [cite: 9]
                 </tr>
             </table>
             ${sigHtml}
@@ -341,8 +338,7 @@ function printDoc(id) {
     window.print();
 }
 
-// --- SYSTEM ---
-
+// ════════════════ SYSTEM HELPERS ════════════════
 function doLogin() {
     const u = document.getElementById('login-user').value;
     const p = document.getElementById('login-pass').value;
@@ -373,25 +369,23 @@ function openSig(id) {
     sigPendingId = id;
     document.getElementById('pin-input').value = '';
     document.getElementById('sigModal').classList.add('open');
-    clearSig();
+    const ctx = document.getElementById('sigCanvas').getContext('2d');
+    ctx.clearRect(0,0,450,170);
 }
 
 function closeSigModal() { document.getElementById('sigModal').classList.remove('open'); }
 
 function confirmSig() {
     const pin = document.getElementById('pin-input').value;
-    const sig = sigCanvas.toDataURL();
+    const sig = document.getElementById('sigCanvas').toDataURL();
     doApprove(sigPendingId, sig, pin);
 }
 
 function resetForm() {
-    document.getElementById('f-hn').value = '';
-    document.getElementById('f-name').value = '';
-    document.getElementById('f-sale').value = '';
-    document.getElementById('p-full').value = '';
-    document.getElementById('p-pct').value = '';
+    ['f-hn','f-name','f-sale','p-full','p-pct'].forEach(id => document.getElementById(id).value = '');
     calcQuick();
-    clearCreatorSig();
+    const c = document.getElementById('creatorCanvas');
+    c.getContext('2d').clearRect(0,0,700,130);
 }
 
 function showToast(m) {
@@ -399,6 +393,31 @@ function showToast(m) {
     t.textContent = m; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ════════════════ SIGNATURE PADS ════════════════
+function initPads() {
+    const p1 = document.getElementById('creatorCanvas');
+    const p2 = document.getElementById('sigCanvas');
+    [p1, p2].forEach(c => {
+        let drawing = false;
+        const ctx = c.getContext('2d');
+        const getPos = (e) => {
+            const rect = c.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        };
+        const start = (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+        const move = (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+        const end = () => drawing = false;
+
+        c.addEventListener('mousedown', start); c.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        c.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); }); c.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }); window.addEventListener('touchend', end);
+        ctx.strokeStyle = '#1A2540'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    });
+}
+
+function clearCreatorSig() { document.getElementById('creatorCanvas').getContext('2d').clearRect(0,0,700,130); }
 </script>
 </body>
 </html>
