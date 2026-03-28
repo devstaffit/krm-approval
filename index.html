@@ -17,11 +17,11 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .tab{padding:9px 22px;border:none;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;border-radius:7px 7px 0 0;}
 .tab.active{background:var(--cream);color:var(--navy);font-weight:700;}
 .panel{display:none;}.panel.active{display:block;}
-.fw{max-width:780px;margin:28px auto;padding:0 18px 60px;}
+.fw{max-width:850px;margin:28px auto;padding:0 18px 60px;}
 .sec{font-family:'Noto Serif Thai',serif;font-size:11.5px;font-weight:600;color:var(--gold-d);border-bottom:1px solid var(--border);padding-bottom:6px;margin:22px 0 13px;}
 .f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .f label{font-size:11px;font-weight:700;color:var(--navy);}
-.f input{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;outline:none;}
+.f input,.f select{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;outline:none;}
 .sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .sum-bar .v{font-size:20px;font-weight:700;color:#fff;font-family:'Noto Serif Thai',serif;}
 .btn-submit{width:100%;margin-top:22px;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-weight:700;cursor:pointer;}
@@ -30,6 +30,14 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .badge.pending_mgr{background:#FEF3C7;color:#92400E;}
 .badge.pending_cmo{background:#E0E7FF;color:#3730A3;}
 .badge.approved{background:#D1FAE5;color:#065F46;}
+/* Report Styles */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.kpi-card{background:#fff;padding:15px;border-radius:10px;border:1px solid var(--border);text-align:center;}
+.kpi-card label{font-size:10px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:5px;}
+.kpi-card .val{font-size:18px;font-weight:700;color:var(--navy);}
+.rpt-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:13px;}
+.rpt-table th{background:var(--navy);color:#fff;padding:10px;text-align:left;}
+.rpt-table td{padding:10px;border-bottom:1px solid var(--cream2);}
 .modal-back{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;}
 .modal-back.open{display:flex;}
 .modal-box{background:#fff;border-radius:16px;padding:26px;width:92%;max-width:500px;}
@@ -65,6 +73,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
     <div class="tabs">
         <button class="tab active" id="tab-btn-form" onclick="switchTab('form')">📋 ยื่นคำขอ</button>
         <button class="tab" id="tab-btn-approve" onclick="switchTab('approve')">✅ รายการอนุมัติ</button>
+        <button class="tab" id="tab-btn-report" onclick="switchTab('report')">📊 รายงาน</button>
     </div>
 
     <div id="tab-form" class="panel active">
@@ -74,7 +83,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
                 <div class="f"><label>HN</label><input id="f-hn" placeholder="Kxxxxxx"></div>
                 <div class="f"><label>ชื่อลูกค้า</label><input id="f-name"></div>
             </div>
-            <div class="f"><label>ชื่อพนักงานขาย (Sale)</label><input id="f-sale"></div>
+            <div class="f"><label>ชื่อพนักงานขาย / ผู้จัดทำ (Sale Name)</label><input id="f-sale" placeholder="ระบุชื่อผู้จัดทำเคสนี้"></div>
             
             <div class="sec">ข้อมูลส่วนลด</div>
             <div class="f"><label>ราคาเต็ม (฿)</label><input id="p-full" type="number" oninput="calcQuick()"></div>
@@ -98,6 +107,21 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
     <div id="tab-approve" class="panel">
         <div class="fw">
             <div id="req-list"></div>
+        </div>
+    </div>
+
+    <div id="tab-report" class="panel">
+        <div class="fw">
+            <div style="display:flex; gap:10px; margin-bottom:20px; align-items:flex-end;">
+                <div class="f"><label>เดือน</label><select id="rpt-month" onchange="buildReport()"></select></div>
+                <div class="f"><label>ปี</label><select id="rpt-year" onchange="buildReport()"></select></div>
+            </div>
+            <div class="kpi-row" id="rpt-kpis"></div>
+            <div class="sec">สรุปรายการรายเดือน</div>
+            <table class="rpt-table">
+                <thead><tr><th>วันที่</th><th>HN</th><th>ลูกค้า</th><th>ส่วนลด</th><th>ผู้จัดทำ</th><th>สถานะ</th></tr></thead>
+                <tbody id="rpt-tbody"></tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -134,9 +158,9 @@ const USERS = {
 };
 
 const LOGIN_ACCOUNTS = [
-    { username: 'sale1', password: 'sale1234', label: 'Sale Team A', role: 'sale' },
-    { username: 'napa', password: 'mgr1234', label: 'นภา ชำนาญรบ', role: 'manager' },
-    { username: 'cmo', password: 'cmo5678', label: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo' }
+    { username: 'sale', password: '123', label: 'Sale Staff Team', role: 'sale' },
+    { username: 'napa', password: '123', label: 'นภา ชำนาญรบ', role: 'manager' },
+    { username: 'cmo', password: '123', label: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo' }
 ];
 
 let currentUser = null;
@@ -157,13 +181,10 @@ function sendEmailNotification(r, targetRole, customMsg = "") {
         custom_message: customMsg,
         app_url: window.location.origin
     };
-
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
-        .then(() => console.log(`📧 Email sent to ${target.name}`))
-        .catch((err) => console.error("❌ Email failed:", err));
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params).catch(console.error);
 }
 
-// --- CORE LOGIC ---
+// --- LOGIC FUNCTIONS ---
 function calcQuick() {
     let full = parseFloat(document.getElementById('p-full').value) || 0;
     let pct = parseFloat(document.getElementById('p-pct').value) || 0;
@@ -175,22 +196,22 @@ function calcQuick() {
 async function submitRequest() {
     let hn = document.getElementById('f-hn').value;
     let name = document.getElementById('f-name').value;
-    let saleInput = document.getElementById('f-sale').value;
+    let saleName = document.getElementById('f-sale').value; // ดึงชื่อที่พิมพ์ใหม่มาใช้
     let pct = parseFloat(document.getElementById('p-pct').value) || 0;
     let full = parseFloat(document.getElementById('p-full').value) || 0;
 
-    if(!hn || !name || !saleInput || !full) return showToast("⚠️ กรุณากรอกข้อมูลให้ครบ");
+    if(!hn || !name || !saleName || !full) return showToast("⚠️ กรุณากรอกข้อมูลให้ครบ");
 
     let status = 'pending_mgr';
     if(currentUser.role === 'manager' && pct > 10) status = 'pending_cmo';
 
     const payload = {
-        hn, customer_name: name, sale_agent: saleInput,
+        hn, customer_name: name, sale_agent: saleName,
         original_price: full, discount_pct: pct,
         final_price: full - ((full * pct) / 100),
         status: status,
         doc_data: {
-            creator_name: currentUser.label,
+            creator_name: saleName, // บันทึกชื่อที่ Sale พิมพ์ลงไปในช่อง "ผู้จัดทำ"
             creator_sig: document.getElementById('creatorCanvas').toDataURL()
         }
     };
@@ -212,12 +233,8 @@ async function doApprove(id, sig, pin) {
 
     if(currentUser.role === 'manager') {
         if(pin !== USERS.sale_mgr.pin) return alert("PIN ไม่ถูกต้อง");
-        if(r.discount_pct <= 10) {
-            newStatus = 'approved';
-        } else {
-            newStatus = 'pending_cmo';
-            sendEmailNotification(r, 'cmo', "Manager รับทราบแล้ว รอ CMO อนุมัติ final");
-        }
+        newStatus = r.discount_pct <= 10 ? 'approved' : 'pending_cmo';
+        if(newStatus === 'pending_cmo') sendEmailNotification(r, 'cmo', "Manager รับทราบแล้ว รอ CMO อนุมัติ final");
         updateData.manager_name = USERS.sale_mgr.name;
         updateData.doc_data.manager_sig = sig;
     } else if(currentUser.role === 'cmo') {
@@ -229,163 +246,115 @@ async function doApprove(id, sig, pin) {
     }
 
     const { error } = await sb.from('approval_requests').update({ status: newStatus, ...updateData }).eq('id', id);
-    if(!error) {
-        closeSigModal();
-        loadReqs();
-        showToast("✅ ดำเนินการสำเร็จ");
-    }
+    if(!error) { closeSigModal(); loadReqs(); showToast("✅ สำเร็จ"); }
+}
+
+// --- REPORT FUNCTIONS ---
+function initReportControls() {
+    const m = document.getElementById('rpt-month'), y = document.getElementById('rpt-year');
+    const now = new Date();
+    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    m.innerHTML = months.map((name, i) => `<option value="${i}" ${i === now.getMonth() ? 'selected' : ''}>${name}</option>`).join('');
+    y.innerHTML = [0, 1, 2].map(off => `<option value="${now.getFullYear() - off}">${now.getFullYear() - off + 543}</option>`).join('');
+}
+
+function buildReport() {
+    const mo = parseInt(document.getElementById('rpt-month').value);
+    const yr = parseInt(document.getElementById('rpt-year').value);
+    const filtered = allReqs.filter(r => {
+        const d = new Date(r.created_at);
+        return d.getMonth() === mo && d.getFullYear() === yr;
+    });
+
+    const approved = filtered.filter(r => r.status === 'approved');
+    const totalDisc = approved.reduce((s, r) => s + (r.original_price - r.final_price), 0);
+    const totalRev = approved.reduce((s, r) => s + r.final_price, 0);
+
+    document.getElementById('rpt-kpis').innerHTML = `
+        <div class="kpi-card"><label>คำขอทั้งหมด</label><div class="val">${filtered.length}</div></div>
+        <div class="kpi-card"><label>อนุมัติแล้ว</label><div class="val" style="color:var(--success)">${approved.length}</div></div>
+        <div class="kpi-card"><label>รวมส่วนลด</label><div class="val" style="color:var(--danger)">${totalDisc.toLocaleString()}</div></div>
+        <div class="kpi-card"><label>ยอดจ่ายสุทธิ</label><div class="val" style="color:var(--navy)">${totalRev.toLocaleString()}</div></div>
+    `;
+
+    document.getElementById('rpt-tbody').innerHTML = filtered.map(r => `
+        <tr>
+            <td>${new Date(r.created_at).toLocaleDateString('th-TH')}</td>
+            <td>${r.hn}</td>
+            <td>${r.customer_name}</td>
+            <td>${r.discount_pct}%</td>
+            <td>${r.sale_agent}</td>
+            <td><span class="badge ${r.status}">${r.status}</span></td>
+        </tr>
+    `).join('') || '<tr><td colspan="6" align="center">ไม่มีข้อมูล</td></tr>';
 }
 
 // --- UI & PRINT ---
 async function loadReqs() {
     const { data, error } = await sb.from('approval_requests').select('*').order('created_at', {ascending: false});
-    if(!error) { allReqs = data; renderList(); }
+    if(!error) { allReqs = data; renderList(); if(document.getElementById('tab-report').classList.contains('active')) buildReport(); }
 }
 
 function renderList() {
     const list = document.getElementById('req-list');
-    list.innerHTML = allReqs.map(r => {
-        let action = '';
-        if(r.status === 'pending_mgr' && currentUser.role === 'manager') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">✍️ เซ็นรับทราบ/อนุมัติ</button>`;
-        if(r.status === 'pending_cmo' && currentUser.role === 'cmo') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">✍️ เซ็นอนุมัติ (CMO)</button>`;
-        
-        return `
-            <div class="card">
-                <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-                    <strong>${r.customer_name} (HN: ${r.hn})</strong>
-                    <span class="badge ${r.status}">${r.status}</span>
-                </div>
-                <p style="font-size:13px;color:var(--muted);">ส่วนลด ${r.discount_pct}% | ยอดจ่าย ${r.final_price.toLocaleString()} ฿</p>
-                <p style="font-size:11px;margin-top:5px;">ผู้จัดทำ: ${r.doc_data.creator_name}</p>
-                <div style="margin-top:12px;display:flex;gap:10px;">
-                    ${action}
-                    <button onclick="printDoc('${r.id}')" style="background:var(--navy);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">🖨️ พิมพ์</button>
-                </div>
+    list.innerHTML = allReqs.map(r => `
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                <strong>${r.customer_name} (HN: ${r.hn})</strong>
+                <span class="badge ${r.status}">${r.status}</span>
             </div>
-        `;
-    }).join('');
+            <p style="font-size:13px;color:var(--muted);">พนักงานขาย: ${r.sale_agent} | ส่วนลด ${r.discount_pct}%</p>
+            <div style="margin-top:12px;display:flex;gap:10px;">
+                ${(r.status === 'pending_mgr' && currentUser.role === 'manager') || (r.status === 'pending_cmo' && currentUser.role === 'cmo') ? `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">✍️ เซ็นอนุมัติ</button>` : ''}
+                <button onclick="printDoc('${r.id}')" style="background:var(--navy);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">🖨️ พิมพ์</button>
+            </div>
+        </div>
+    `).join('');
 }
 
 function printDoc(id) {
     const r = allReqs.find(x => x.id === id);
     const d = r.doc_data;
     const isHigh = r.discount_pct > 10;
-    
     const sigHtml = `
         <table style="width:100%;margin-top:50px;text-align:center;font-size:12px;color:#000;">
             <tr>
-                <td style="width:33%;">
-                    <p style="font-weight:700;">ผู้จัดทำ</p>
-                    <img src="${d.creator_sig}" style="height:50px;border-bottom:1px solid #000;">
-                    <p style="margin-top:5px;">(${d.creator_name})</p>
-                </td>
-                <td style="width:33%;">
-                    ${isHigh ? `
-                        <p style="font-weight:700;">ผู้รับทราบ/ตรวจสอบ</p>
-                        ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
-                        <p style="margin-top:5px;">(${USERS.sale_mgr.name})</p>
-                    ` : ''}
-                </td>
-                <td style="width:33%;">
-                    <p style="font-weight:700;">ผู้อนุมัติ</p>
-                    ${!isHigh ? `
-                        ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
-                        <p style="margin-top:5px;">(${USERS.sale_mgr.name})</p>
-                    ` : `
-                        ${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
-                        <p style="margin-top:5px;">(${USERS.cmo.name})</p>
-                    `}
-                </td>
+                <td style="width:33%;"><p>ผู้จัดทำ</p><img src="${d.creator_sig}" style="height:50px;border-bottom:1px solid #000;"><p>(${d.creator_name})</p></td>
+                <td style="width:33%;">${isHigh ? `<p>ผู้รับทราบ/ตรวจสอบ</p>${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}<p>(${USERS.sale_mgr.name})</p>` : ''}</td>
+                <td style="width:33%;"><p>ผู้อนุมัติ</p>${!isHigh ? `${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}<p>(${USERS.sale_mgr.name})</p>` : `${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}<p>(${USERS.cmo.name})</p>`}</td>
             </tr>
-        </table>
-    `;
-
-    document.getElementById('printArea').innerHTML = `
-        <div style="padding:60px;background:#fff;color:#000;min-height:100vh;font-family:Sarabun,sans-serif;">
-            <div style="text-align:right;font-size:12px;">วันที่ ${new Date().toLocaleDateString('th-TH')}</div>
-            <h2 style="text-align:center;margin-top:20px;">ใบขออนุมัติส่วนลด</h2>
-            <div style="margin:40px 0;line-height:2;">
-                <p><strong>ชื่อลูกค้า:</strong> ${r.customer_name} (HN: ${r.hn})</p>
-                <p><strong>พนักงานขาย:</strong> ${r.sale_agent}</p>
-            </div>
-            <table border="1" style="width:100%;border-collapse:collapse;text-align:center;">
-                <tr style="background:#f4f4f4;"><th style="padding:10px;">ราคาเต็ม</th><th>ส่วนลด %</th><th>ลูกค้าจ่าย</th></tr>
-                <tr>
-                    <td style="padding:15px;">${r.original_price.toLocaleString()} ฿</td>
-                    <td>${r.discount_pct}%</td>
-                    <td><strong>${r.final_price.toLocaleString()} ฿</strong></td>
-                </tr>
-            </table>
-            ${sigHtml}
-        </div>
-    `;
+        </table>`;
+    document.getElementById('printArea').innerHTML = `<div style="padding:60px;font-family:Sarabun,sans-serif;"><h2 style="text-align:center;">ใบขออนุมัติส่วนลด</h2><p><strong>HN:</strong> ${r.hn} | <strong>ชื่อลูกค้า:</strong> ${r.customer_name}</p><p><strong>ผู้จัดทำ:</strong> ${r.sale_agent}</p><table border="1" style="width:100%;border-collapse:collapse;text-align:center;margin-top:20px;"><tr><th>ราคาเต็ม</th><th>ลด %</th><th>ลูกค้าจ่าย</th></tr><tr><td>${r.original_price.toLocaleString()}</td><td>${r.discount_pct}%</td><td><strong>${r.final_price.toLocaleString()}</strong></td></tr></table>${sigHtml}</div>`;
     window.print();
 }
 
 // --- UTILITIES ---
 function doLogin() {
-    const u = document.getElementById('login-user').value;
-    const p = document.getElementById('login-pass').value;
+    const u = document.getElementById('login-user').value, p = document.getElementById('login-pass').value;
     const found = LOGIN_ACCOUNTS.find(a => a.username === u && a.password === p);
     if(found) {
-        currentUser = found;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-body').style.display = 'block';
+        currentUser = found; document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-body').style.display = 'block';
         document.getElementById('user-badge').textContent = `${found.label} (${found.role})`;
-        switchTab(found.role === 'sale' ? 'form' : 'approve');
-        initPads();
-    } else {
-        document.getElementById('login-error').textContent = "❌ ชื่อผู้ใช้หรือรหัสผ่านผิด";
-    }
+        switchTab(found.role === 'sale' ? 'form' : 'approve'); initPads();
+    } else document.getElementById('login-error').textContent = "❌ ชื่อผู้ใช้หรือรหัสผ่านผิด";
 }
-
 function logout() { location.reload(); }
-
 function switchTab(t) {
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('tab-btn-'+t).classList.add('active');
     document.getElementById('tab-'+t).classList.add('active');
-    if(t === 'approve') loadReqs();
+    if(t === 'report') { initReportControls(); buildReport(); } else loadReqs();
 }
-
-function openSig(id) {
-    sigPendingId = id;
-    document.getElementById('pin-input').value = '';
-    document.getElementById('sigModal').classList.add('open');
-    document.getElementById('sigCanvas').getContext('2d').clearRect(0,0,450,170);
-}
-
+function openSig(id) { sigPendingId = id; document.getElementById('pin-input').value = ''; document.getElementById('sigModal').classList.add('open'); }
 function closeSigModal() { document.getElementById('sigModal').classList.remove('open'); }
-
-function confirmSig() {
-    const pin = document.getElementById('pin-input').value;
-    const sig = document.getElementById('sigCanvas').toDataURL();
-    doApprove(sigPendingId, sig, pin);
-}
-
-function resetForm() {
-    ['f-hn','f-name','f-sale','p-full','p-pct'].forEach(id => document.getElementById(id).value = '');
-    calcQuick();
-    document.getElementById('creatorCanvas').getContext('2d').clearRect(0,0,700,130);
-}
-
-function showToast(m) {
-    const t = document.getElementById('toast');
-    t.textContent = m; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-}
-
+function confirmSig() { const pin = document.getElementById('pin-input').value, sig = document.getElementById('sigCanvas').toDataURL(); doApprove(sigPendingId, sig, pin); }
+function resetForm() { ['f-hn','f-name','f-sale','p-full','p-pct'].forEach(id => document.getElementById(id).value = ''); calcQuick(); document.getElementById('creatorCanvas').getContext('2d').clearRect(0,0,700,130); }
+function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 function initPads() {
     [document.getElementById('creatorCanvas'), document.getElementById('sigCanvas')].forEach(c => {
-        let drawing = false;
-        const ctx = c.getContext('2d');
-        const getPos = (e) => {
-            const rect = c.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: clientX - rect.left, y: clientY - rect.top };
-        };
+        let drawing = false; const ctx = c.getContext('2d');
+        const getPos = (e) => { const rect = c.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: clientX - rect.left, y: clientY - rect.top }; };
         const start = (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
         const move = (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
         const end = () => drawing = false;
@@ -394,7 +363,6 @@ function initPads() {
         ctx.strokeStyle = '#1A2540'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
     });
 }
-
 function clearCreatorSig() { document.getElementById('creatorCanvas').getContext('2d').clearRect(0,0,700,130); }
 </script>
 </body>
