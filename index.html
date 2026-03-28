@@ -3,100 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KRM – ระบบขออนุมัติส่วนลด</title>
+<title>KRM – ระบบขออนุมัติส่วนลด (V2)</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
-/* CSS ส่วนใหญ่คงเดิมเพื่อรักษา Design ของคุณไว้ */
+/* --- Style คงเดิมตามต้นฉบับของคุณ --- */
 :root{--gold:#B8955A;--gold-l:#D4AF7A;--gold-d:#8A6C3A;--navy:#1A2540;--navy2:#243052;--cream:#FAF7F2;--cream2:#F0EBE0;--text:#2C2C2C;--muted:#7A7A7A;--border:#D9CEB8;--success:#1E6E47;--danger:#C0392B;--sh:0 4px 24px rgba(26,37,64,.10);}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
-#cfg{background:#fff3cd;border-bottom:2px solid #ffc107;padding:10px 24px;text-align:center;font-size:13px;color:#856404;}
-#cfg.hide{display:none;}
 .hdr{background:var(--navy);padding:14px 28px;display:flex;align-items:center;gap:16px;}
-.hdr h1{color:#fff;font-size:16px;font-weight:700;}.hdr p{color:var(--gold-l);font-size:12px;margin-top:2px;}
+.hdr h1{color:#fff;font-size:16px;font-weight:700;}
 .tabs{background:var(--navy);display:flex;gap:2px;padding:0 22px;}
-.tab{padding:9px 22px;border:none;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border-radius:7px 7px 0 0;transition:all .2s;}
+.tab{padding:9px 22px;border:none;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;border-radius:7px 7px 0 0;}
 .tab.active{background:var(--cream);color:var(--navy);font-weight:700;}
-.tab:not(.active):hover{background:rgba(255,255,255,.14);color:#fff;}
 .panel{display:none;}.panel.active{display:block;}
 .fw{max-width:780px;margin:28px auto;padding:0 18px 60px;}
-.sec{font-family:'Noto Serif Thai',serif;font-size:11.5px;font-weight:600;color:var(--gold-d);letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:6px;margin:22px 0 13px;}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
-.f{display:flex;flex-direction:column;gap:5px;}
-.f label{font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.04em;text-transform:uppercase;}
-.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-family:'Sarabun',sans-serif;font-size:14px;background:#fff;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
-.items-table{width:100%;border-collapse:collapse;min-width:540px;}
-.items-table th{background:#000;color:#fff;font-size:11px;padding:9px 10px;text-align:left;}
-.sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sec{font-family:'Noto Serif Thai',serif;font-size:11.5px;font-weight:600;color:var(--gold-d);border-bottom:1px solid var(--border);padding-bottom:6px;margin:22px 0 13px;}
+.f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.f label{font-size:11px;font-weight:700;color:var(--navy);}
+.f input,.f select{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;}
+.sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .sum-bar .v{font-size:20px;font-weight:700;color:#fff;font-family:'Noto Serif Thai',serif;}
 .btn-submit{width:100%;margin-top:22px;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-weight:700;cursor:pointer;}
-.card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;box-shadow:var(--sh);overflow:hidden;}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;padding:15px;box-shadow:var(--sh);}
 .badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;}
-.badge.pending_mgr{background:#FEF3C7;color:#92400E;}
-.badge.pending_cmo{background:#E0E7FF;color:#3730A3;}
+.badge.pending_mgr{background:#FEF3C7;color:#92400E;} /* รอ Manager */
+.badge.pending_cmo{background:#E0E7FF;color:#3730A3;} /* รอ CMO */
 .badge.approved{background:#D1FAE5;color:#065F46;}
 .modal-back{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;}
 .modal-back.open{display:flex;}
 .modal-box{background:#fff;border-radius:16px;padding:26px;width:92%;max-width:500px;}
 #sigCanvas{width:100%;height:170px;border:2px dashed var(--border);border-radius:10px;background:#FAFAF8;}
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 24px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .3s;z-index:9999;}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 24px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .3s;z-index:9999;pointer-events:none;}
 #toast.show{opacity:1;}
 @media print{body>*:not(#printArea){display:none!important;}#printArea{display:block!important;}}
 </style>
 </head>
 <body>
 
-<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--navy);align-items:center;justify-content:center;">
-  <div style="width:92%;max-width:380px;text-align:center;color:#fff;">
-    <h2 style="margin-bottom:20px;">KRM Login</h2>
-    <div style="background:rgba(255,255,255,.1);padding:30px;border-radius:15px;">
-        <input id="login-user" placeholder="Username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:none;">
+<div id="login-screen" style="display:flex;position:fixed;inset:0;z-index:9000;background:var(--navy);align-items:center;justify-content:center;">
+  <div style="width:92%;max-width:380px;text-align:center;">
+    <h2 style="color:#fff;margin-bottom:25px;">KRM Approval System</h2>
+    <div style="background:rgba(255,255,255,.08);padding:30px;border-radius:15px;border:1px solid rgba(255,255,255,.1);">
+        <input id="login-user" placeholder="Username" style="width:100%;padding:12px;margin-bottom:12px;border-radius:8px;border:none;">
         <input id="login-pass" type="password" placeholder="Password" style="width:100%;padding:12px;margin-bottom:20px;border-radius:8px;border:none;">
-        <button onclick="doLogin()" style="width:100%;padding:12px;background:var(--gold);border:none;border-radius:8px;font-weight:700;cursor:pointer;">Login</button>
-        <div id="login-error" style="color:#ff7675;margin-top:10px;font-size:12px;"></div>
+        <button onclick="doLogin()" style="width:100%;padding:13px;background:var(--gold);border:none;border-radius:8px;font-weight:700;cursor:pointer;">เข้าสู่ระบบ</button>
+        <div id="login-error" style="color:#f87171;margin-top:15px;font-size:13px;"></div>
     </div>
   </div>
 </div>
 
 <div id="app-body" style="display:none;">
     <div class="hdr">
-        <h1 style="color:#fff;">KRM Approval System</h1>
-        <div style="margin-left:auto;color:#fff;">
-            <span id="user-badge"></span>
-            <button onclick="logout()" style="margin-left:10px;padding:5px 10px;cursor:pointer;">Logout</button>
+        <h1>ระบบขออนุมัติส่วนลด KRM</h1>
+        <div style="margin-left:auto;color:#fff;display:flex;align-items:center;gap:15px;">
+            <span id="user-badge" style="font-size:12px;background:rgba(255,255,255,.1);padding:5px 12px;border-radius:20px;"></span>
+            <button onclick="logout()" style="background:none;border:1px solid #fff;color:#fff;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:12px;">ออก</button>
         </div>
     </div>
 
     <div class="tabs">
         <button class="tab active" id="tab-btn-form" onclick="switchTab('form')">📋 ยื่นคำขอ</button>
-        <button class="tab" id="tab-btn-approve" onclick="switchTab('approve')">✅ อนุมัติ / ติดตาม</button>
+        <button class="tab" id="tab-btn-approve" onclick="switchTab('approve')">✅ รายการอนุมัติ</button>
     </div>
 
     <div id="tab-form" class="panel active">
         <div class="fw">
             <div class="sec">ข้อมูลลูกค้า</div>
-            <div class="g2">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                 <div class="f"><label>HN</label><input id="f-hn" placeholder="Kxxxxxx"></div>
                 <div class="f"><label>ชื่อลูกค้า</label><input id="f-name"></div>
             </div>
-            <div class="f" style="margin-top:10px;"><label>ชื่อพนักงานขาย (Sale)</label><input id="f-sale"></div>
+            <div class="f"><label>ชื่อพนักงานขาย (Sale)</label><input id="f-sale"></div>
             
-            <div class="sec">รายการส่วนลด</div>
+            <div class="sec">ข้อมูลส่วนลด</div>
             <div class="f"><label>ราคาเต็ม (฿)</label><input id="p-full" type="number" oninput="calcQuick()"></div>
-            <div class="f" style="margin-top:10px;"><label>ส่วนลด (%)</label><input id="p-pct" type="number" oninput="calcQuick()"></div>
+            <div class="f"><label>ส่วนลด (%)</label><input id="p-pct" type="number" oninput="calcQuick()"></div>
             
-            <div class="sum-bar">
-                <div><label>ส่วนลด</label><div class="v" id="sum-disc">0</div></div>
-                <div><label>ลูกค้าจ่าย</label><div class="v" id="sum-final">0</div></div>
+            <div class="sum-bar" style="margin-bottom:20px;">
+                <div><label style="color:var(--gold-l);font-size:10px;">ส่วนลด</label><div class="v" id="sum-disc">0</div></div>
+                <div><label style="color:var(--gold-l);font-size:10px;">ลูกค้าจ่าย</label><div class="v" id="sum-final">0</div></div>
             </div>
 
             <div class="sec">ลายเซ็นผู้จัดทำ</div>
-            <div style="border:1px dashed #ccc; background:#fff; height:120px;">
-                <canvas id="creatorCanvas" width="700" height="120" style="width:100%; height:100%;"></canvas>
+            <div style="border:2px dashed var(--border); background:#fff; height:130px; border-radius:10px; overflow:hidden;">
+                <canvas id="creatorCanvas" width="700" height="130" style="width:100%; height:100%; cursor:crosshair;"></canvas>
             </div>
-            <button onclick="clearCreatorSig()" style="margin-top:5px;">ล้างลายเซ็น</button>
+            <button onclick="clearCreatorSig()" style="margin-top:8px;padding:5px 10px;font-size:11px;">ล้างลายเซ็น</button>
 
             <button class="btn-submit" onclick="submitRequest()">📤 ส่งคำขออนุมัติ</button>
         </div>
@@ -111,12 +105,12 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 
 <div id="sigModal" class="modal-back">
   <div class="modal-box">
-    <h3 id="sig-title">เซ็นอนุมัติ</h3>
-    <input id="pin-input" type="password" placeholder="ใส่ PIN 4 หลัก" style="width:100%;padding:10px;margin:15px 0;text-align:center;font-size:20px;">
+    <h3 id="sig-title" style="margin-bottom:10px;">ลงลายเซ็นอนุมัติ</h3>
+    <input id="pin-input" type="password" placeholder="ใส่ PIN 4 หลัก" maxlength="4" style="width:100%;padding:12px;margin-bottom:15px;text-align:center;font-size:24px;border:1.5px solid var(--border);border-radius:8px;">
     <canvas id="sigCanvas" width="450" height="170"></canvas>
-    <div style="display:flex;gap:10px;margin-top:15px;">
-        <button onclick="confirmSig()" style="flex:1;padding:10px;background:var(--success);color:#fff;border:none;border-radius:8px;cursor:pointer;">ยืนยัน</button>
-        <button onclick="closeSigModal()" style="flex:1;padding:10px;background:#ccc;border:none;border-radius:8px;cursor:pointer;">ยกเลิก</button>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+        <button onclick="confirmSig()" style="flex:2;padding:12px;background:var(--success);color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;">✅ ยืนยันการเซ็น</button>
+        <button onclick="closeSigModal()" style="flex:1;padding:12px;background:#eee;border:none;border-radius:8px;cursor:pointer;">ยกเลิก</button>
     </div>
   </div>
 </div>
@@ -125,18 +119,18 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 <div id="toast"></div>
 
 <script>
-// --- CONFIG & CONSTANTS ---
+// --- CONFIGURATION ---
 const SUPABASE_URL = 'https://hnpccpuwxrebxangdane.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // ใส่ Key ของคุณ
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGNjcHV3eHJlYnhhbmdkYW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTAxNTAsImV4cCI6MjA4OTgyNjE1MH0.34CqrdqVeHF6_RUArM2UIIf3oefqrHeMwuiNJwEV1Vs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const USERS = {
-    sale_mgr: { name: 'นภา ชำนาญรบ', role: 'Sale Manager', pin: '1234' },
-    cmo: { name: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'Chief Marketing Officer', pin: '5678' }
+    sale_mgr: { name: 'นภา ชำนาญรบ', role: 'manager', pin: '1234' },
+    cmo: { name: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo', pin: '5678' }
 };
 
 const LOGIN_ACCOUNTS = [
-    { username: 'sale1', password: '123', label: 'เซลล์สวยงาม', role: 'sale' },
+    { username: 'sale1', password: '123', label: 'Sale Team A', role: 'sale' },
     { username: 'napa', password: '123', label: 'นภา ชำนาญรบ', role: 'manager' },
     { username: 'cmo', password: '123', label: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo' }
 ];
@@ -145,52 +139,86 @@ let currentUser = null;
 let allReqs = [];
 let sigPendingId = null;
 
-// --- CORE LOGIC ---
+// --- INITIALIZE PADS ---
+let creatorCanvas, creatorCtx, sigCanvas, sigCtx;
+let isDrawing = false;
+
+function initPads() {
+    creatorCanvas = document.getElementById('creatorCanvas');
+    creatorCtx = creatorCanvas.getContext('2d');
+    sigCanvas = document.getElementById('sigCanvas');
+    sigCtx = sigCanvas.getContext('2d');
+
+    [creatorCanvas, sigCanvas].forEach(canvas => {
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+        canvas.addEventListener('touchend', stopDraw);
+    });
+}
+
+function startDraw(e) {
+    isDrawing = true;
+    const ctx = e.target ? e.target.getContext('2d') : sigCtx;
+    const rect = (e.target || sigCanvas).getBoundingClientRect();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    const canvas = e.target || sigCanvas;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.strokeStyle = '#1A2540';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function stopDraw() { isDrawing = false; }
+
+function clearCreatorSig() { creatorCtx.clearRect(0,0,700,130); }
+function clearSig() { sigCtx.clearRect(0,0,450,170); }
+
+// --- LOGIC FUNCTIONS ---
 
 function calcQuick() {
     let full = parseFloat(document.getElementById('p-full').value) || 0;
     let pct = parseFloat(document.getElementById('p-pct').value) || 0;
     let disc = (full * pct) / 100;
-    let final = full - disc;
     document.getElementById('sum-disc').textContent = disc.toLocaleString();
-    document.getElementById('sum-final').textContent = final.toLocaleString();
+    document.getElementById('sum-final').textContent = (full - disc).toLocaleString();
 }
 
 async function submitRequest() {
     let hn = document.getElementById('f-hn').value;
     let name = document.getElementById('f-name').value;
+    let sale = document.getElementById('f-sale').value;
     let pct = parseFloat(document.getElementById('p-pct').value) || 0;
     let full = parseFloat(document.getElementById('p-full').value) || 0;
-    let sale = document.getElementById('f-sale').value;
 
-    if(!hn || !name || !full) return alert("กรุณากรอกข้อมูลให้ครบ");
+    if(!hn || !name || !sale || !full) return showToast("⚠️ กรุณากรอกข้อมูลให้ครบ");
 
-    let creatorSig = document.getElementById('creatorCanvas').toDataURL();
-    
-    // กำหนดสถานะตั้งต้นตามเงื่อนไข
-    // ถ้าส่วนลด <= 10% -> รอ Manager อนุมัติ (pending_mgr)
-    // ถ้าส่วนลด > 10% -> รอ Manager ตรวจรับทราบ (pending_mgr) ยกเว้น Manager ทำเองจะไป pending_cmo
     let status = 'pending_mgr';
     if(currentUser.role === 'manager' && pct > 10) status = 'pending_cmo';
 
-    let payload = {
-        hn,
-        customer_name: name,
-        sale_agent: sale, // ชื่อที่พิมพ์ในช่อง Sale
-        original_price: full,
-        discount_pct: pct,
+    const payload = {
+        hn, customer_name: name, sale_agent: sale,
+        original_price: full, discount_pct: pct,
         final_price: full - ((full * pct) / 100),
         status: status,
         doc_data: {
-            creator_name: currentUser.label, // คนที่ Login คือ "ผู้จัดทำ" ตัวจริง
-            creator_role: currentUser.role,
-            creator_sig: creatorSig
+            creator_name: currentUser.label, // ล็อกชื่อผู้ล็อกอิน 
+            creator_sig: creatorCanvas.toDataURL()
         }
     };
 
     const { error } = await sb.from('approval_requests').insert(payload);
     if(!error) {
-        showToast("ส่งคำขอเรียบร้อยแล้ว");
+        showToast("✅ ส่งคำขอเรียบร้อย");
         resetForm();
         switchTab('approve');
     }
@@ -199,56 +227,54 @@ async function submitRequest() {
 async function doApprove(id, sig, pin) {
     const r = allReqs.find(x => x.id === id);
     let newStatus = '';
-    let updateObj = { doc_data: { ...r.doc_data } };
+    let updateData = { doc_data: { ...r.doc_data } };
 
-    // 1. Case Manager
     if(currentUser.role === 'manager') {
-        if(pin !== USERS.sale_mgr.pin) return alert("PIN ผิด");
-        if(r.discount_pct <= 10) {
-            newStatus = 'approved'; // ส่วนลดน้อย อนุมัติจบเลย
-        } else {
-            newStatus = 'pending_cmo'; // ส่วนลดมาก ส่งต่อให้ CMO
-        }
-        updateObj.manager_name = USERS.sale_mgr.name;
-        updateObj.doc_data.manager_sig = sig;
-        updateObj.manager_signed_at = new Date();
-    } 
-    // 2. Case CMO
-    else if(currentUser.role === 'cmo') {
-        if(pin !== USERS.cmo.pin) return alert("PIN ผิด");
+        if(pin !== USERS.sale_mgr.pin) return alert("PIN ไม่ถูกต้อง");
+        newStatus = r.discount_pct <= 10 ? 'approved' : 'pending_cmo'; // [cite: 35, 36]
+        updateData.manager_name = USERS.sale_mgr.name;
+        updateData.doc_data.manager_sig = sig;
+    } else if(currentUser.role === 'cmo') {
+        if(pin !== USERS.cmo.pin) return alert("PIN ไม่ถูกต้อง");
         newStatus = 'approved';
-        updateObj.cmo_name = USERS.cmo.name;
-        updateObj.doc_data.cmo_sig = sig;
-        updateObj.approved_at = new Date();
+        updateData.cmo_name = USERS.cmo.name;
+        updateData.doc_data.cmo_sig = sig;
+        updateData.approved_at = new Date();
     }
 
-    const { error } = await sb.from('approval_requests').update({ status: newStatus, ...updateObj }).eq('id', id);
+    const { error } = await sb.from('approval_requests').update({ status: newStatus, ...updateData }).eq('id', id);
     if(!error) {
         closeSigModal();
         loadReqs();
-        showToast("ดำเนินการเรียบร้อย");
+        showToast("✅ ดำเนินการสำเร็จ");
     }
 }
 
-// --- UI & PRINT ---
+// --- UI HELPERS ---
+
+async function loadReqs() {
+    const { data, error } = await sb.from('approval_requests').select('*').order('created_at', {ascending: false});
+    if(!error) { allReqs = data; renderList(); }
+}
 
 function renderList() {
     const list = document.getElementById('req-list');
     list.innerHTML = allReqs.map(r => {
-        let btn = '';
-        if(r.status === 'pending_mgr' && currentUser.role === 'manager') btn = `<button onclick="openSig('${r.id}')">เซ็นรับทราบ/อนุมัติ</button>`;
-        if(r.status === 'pending_cmo' && currentUser.role === 'cmo') btn = `<button onclick="openSig('${r.id}')">เซ็นอนุมัติ (CMO)</button>`;
+        let action = '';
+        if(r.status === 'pending_mgr' && currentUser.role === 'manager') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">เซ็นอนุมัติ</button>`;
+        if(r.status === 'pending_cmo' && currentUser.role === 'cmo') action = `<button onclick="openSig('${r.id}')" style="background:var(--success);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">เซ็นอนุมัติ (CMO)</button>`;
         
         return `
-            <div class="card" style="padding:15px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${r.customer_name} (${r.hn})</strong>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                    <strong>${r.customer_name} (HN: ${r.hn})</strong>
                     <span class="badge ${r.status}">${r.status}</span>
                 </div>
-                <p>ส่วนลด: ${r.discount_pct}% | ผู้จัดทำ: ${r.doc_data.creator_name}</p>
-                <div style="margin-top:10px;">
-                    ${btn}
-                    <button onclick="printDoc('${r.id}')">🖨️ พิมพ์ใบขออนุมัติ</button>
+                <p style="font-size:13px;color:var(--muted);">ส่วนลด ${r.discount_pct}% | ยอดจ่าย ${r.final_price.toLocaleString()} ฿</p>
+                <p style="font-size:11px;margin-top:5px;">ผู้จัดทำ: ${r.doc_data.creator_name}</p>
+                <div style="margin-top:12px;display:flex;gap:10px;">
+                    ${action}
+                    <button onclick="printDoc('${r.id}')" style="background:var(--navy);color:#fff;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">🖨️ พิมพ์</button>
                 </div>
             </div>
         `;
@@ -258,36 +284,34 @@ function renderList() {
 function printDoc(id) {
     const r = allReqs.find(x => x.id === id);
     const d = r.doc_data;
-    const isHighDisc = r.discount_pct > 10;
+    const isHigh = r.discount_pct > 10;
     
-    // Logic การแสดงผลลายเซ็นในหน้าพิมพ์
-    let sigTable = `
-        <table style="width:100%; text-align:center; margin-top:40px;">
+    // ตารางลายเซ็น 3 ช่อง
+    const sigHtml = `
+        <table style="width:100%;margin-top:50px;text-align:center;font-size:12px;">
             <tr>
                 <td style="width:33%;">
-                    <p style="font-size:12px;">ผู้จัดทำ</p>
-                    <img src="${d.creator_sig}" style="height:50px;">
+                    <p>ผู้จัดทำ</p>
+                    <img src="${d.creator_sig}" style="height:50px;border-bottom:1px solid #000;">
                     <p>(${d.creator_name})</p>
                 </td>
-
                 <td style="width:33%;">
-                    ${isHighDisc ? `
-                        <p style="font-size:12px;">ผู้ตรวจสอบ/รับทราบ</p>
-                        ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;">` : '<div style="height:50px;"></div>'}
+                    ${isHigh ? `
+                        <p>ผู้รับทราบ/ตรวจสอบ</p>
+                        ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
                         <p>(${USERS.sale_mgr.name})</p>
-                        <p style="font-size:10px;">Sale Manager</p>
+                        <p>Sale Manager</p>
                     ` : ''}
                 </td>
-
                 <td style="width:33%;">
-                    <p style="font-size:12px;">ผู้อนุมัติ</p>
-                    ${!isHighDisc ? `
-                        ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;">` : '<div style="height:50px;"></div>'}
+                    <p>ผู้อนุมัติ</p>
+                    ${!isHigh ? `
+                        ${d.manager_sig ? `<img src="${d.manager_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
                         <p>(${USERS.sale_mgr.name})</p>
                     ` : `
-                        ${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;">` : '<div style="height:50px;"></div>'}
+                        ${d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:50px;border-bottom:1px solid #000;">` : '<div style="height:50px;border-bottom:1px solid #000;margin:0 20px;"></div>'}
                         <p>(${USERS.cmo.name})</p>
-                        <p style="font-size:10px;">CMO</p>
+                        <p>Chief Marketing Officer</p>
                     `}
                 </td>
             </tr>
@@ -295,45 +319,86 @@ function printDoc(id) {
     `;
 
     document.getElementById('printArea').innerHTML = `
-        <div style="padding:40px; font-family:Sarabun;">
+        <div style="padding:50px;background:#fff;color:#000;min-height:100vh;">
             <h2 style="text-align:center;">ใบขออนุมัติส่วนลด</h2>
-            <p>เรียน ผู้บริหารที่เกี่ยวข้อง</p>
-            <p>เนื่องด้วยฝ่ายขายมีความประสงค์ขออนุมัติส่วนลดให้คุณ <strong>${r.customer_name} (HN: ${r.hn})</strong></p>
-            <table border="1" style="width:100%; border-collapse:collapse; margin:20px 0;">
-                <tr><th>ราคาเต็ม</th><th>ส่วนลด %</th><th>ยอดจ่ายสุทธิ</th></tr>
+            <div style="margin:30px 0;">
+                <p><strong>ชื่อลูกค้า:</strong> ${r.customer_name} (HN: ${r.hn})</p>
+                <p><strong>พนักงานขาย:</strong> ${r.sale_agent}</p>
+                <p><strong>รายการ:</strong> ส่วนลดศัลยกรรมตกแต่ง</p>
+            </div>
+            <table border="1" style="width:100%;border-collapse:collapse;text-align:center;">
+                <tr><th style="padding:10px;">ราคาเต็ม</th><th>ส่วนลด %</th><th>มูลค่าส่วนลด</th><th>ลูกค้าจ่าย</th></tr>
                 <tr>
-                    <td align="center">${r.original_price.toLocaleString()}</td>
-                    <td align="center">${r.discount_pct}%</td>
-                    <td align="center"><strong>${r.final_price.toLocaleString()}</strong></td>
+                    <td style="padding:10px;">${r.original_price.toLocaleString()}</td>
+                    <td>${r.discount_pct}%</td>
+                    <td>${(r.original_price - r.final_price).toLocaleString()}</td>
+                    <td><strong>${r.final_price.toLocaleString()}</strong></td>
                 </tr>
             </table>
-            ${sigTable}
+            ${sigHtml}
         </div>
     `;
     window.print();
 }
 
-// --- INITIALIZATION ---
+// --- SYSTEM ---
+
+function doLogin() {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    const found = LOGIN_ACCOUNTS.find(a => a.username === u && a.password === p);
+    if(found) {
+        currentUser = found;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-body').style.display = 'block';
+        document.getElementById('user-badge').textContent = `${found.label} (${found.role})`;
+        switchTab(found.role === 'sale' ? 'form' : 'approve');
+        initPads();
+    } else {
+        document.getElementById('login-error').textContent = "❌ ชื่อผู้ใช้หรือรหัสผ่านผิด";
+    }
+}
+
+function logout() { location.reload(); }
+
+function switchTab(t) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-btn-'+t).classList.add('active');
+    document.getElementById('tab-'+t).classList.add('active');
+    if(t === 'approve') loadReqs();
+}
 
 function openSig(id) {
     sigPendingId = id;
+    document.getElementById('pin-input').value = '';
     document.getElementById('sigModal').classList.add('open');
     clearSig();
 }
 
+function closeSigModal() { document.getElementById('sigModal').classList.remove('open'); }
+
 function confirmSig() {
-    let pin = document.getElementById('pin-input').value;
-    let sig = document.getElementById('sigCanvas').toDataURL();
+    const pin = document.getElementById('pin-input').value;
+    const sig = sigCanvas.toDataURL();
     doApprove(sigPendingId, sig, pin);
 }
 
-function clearCreatorSig() {
-    const c = document.getElementById('creatorCanvas');
-    c.getContext('2d').clearRect(0,0,c.width,c.height);
+function resetForm() {
+    document.getElementById('f-hn').value = '';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-sale').value = '';
+    document.getElementById('p-full').value = '';
+    document.getElementById('p-pct').value = '';
+    calcQuick();
+    clearCreatorSig();
 }
 
-// ฟังก์ชันอื่นๆ (Login, Tabs, SigPad) ให้ใช้ Logic เดิมของคุณได้เลยครับ
-// ผมตัดมาเฉพาะส่วนสำคัญเพื่อให้อ่านง่าย
+function showToast(m) {
+    const t = document.getElementById('toast');
+    t.textContent = m; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
 </script>
 </body>
 </html>
