@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KRM – ระบบขออนุมัติส่วนลด</title>
+<title>KRM – ระบบขออนุมัติส่วนลด (Official)</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -21,22 +21,18 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .sec{font-family:'Noto Serif Thai',serif;font-size:11.5px;font-weight:600;color:var(--gold-d);border-bottom:1px solid var(--border);padding-bottom:6px;margin:22px 0 13px;text-transform:uppercase;}
 .f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .f label{font-size:11px;font-weight:700;color:var(--navy);}
-.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:14px;outline:none;}
+.f input,.f select,.f textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-family:'Sarabun',sans-serif;font-size:14px;outline:none;}
 .doc-picker{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:22px;}
 .dc{border:2px solid var(--border);border-radius:10px;padding:13px 8px;text-align:center;cursor:pointer;background:#fff;}
 .dc.sel{border-color:var(--gold);background:#FDF8F0;}
 .form-section{display:none;}.form-section.active{display:block;}
 .sum-bar{background:var(--navy);border-radius:10px;padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:15px;}
 .sum-bar .v{font-size:20px;font-weight:700;color:#fff;font-family:'Noto Serif Thai',serif;}
-.btn-submit{width:100%;margin-top:22px;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:9px;font-weight:700;cursor:pointer;}
-.card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;padding:15px;box-shadow:var(--sh);}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;padding:18px;box-shadow:var(--sh);}
 .badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;}
 .badge.pending_mgr{background:#FEF3C7;color:#92400E;}
 .badge.pending_cmo{background:#E0E7FF;color:#3730A3;}
 .badge.approved{background:#D1FAE5;color:#065F46;}
-.rpt-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:10px;overflow:hidden;}
-.rpt-table th{background:var(--navy);color:#fff;padding:10px;text-align:left;}
-.rpt-table td{padding:10px;border-bottom:1px solid var(--cream2);}
 .modal-back{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;}
 .modal-back.open{display:flex;}
 .modal-box{background:#fff;border-radius:16px;padding:26px;width:92%;max-width:500px;}
@@ -85,21 +81,23 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
                 <div class="dc" data-type="gift" onclick="selType('gift')">🎁 ของแถม</div>
             </div>
 
-            <div class="sec">ข้อมูลลูกค้า</div>
+            <div class="sec">ข้อมูลลูกค้า & วันนัด</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                <div class="f"><label>HN</label><input id="f-hn" placeholder="Kxxxxxx"></div>
-                <div class="f"><label>ชื่อลูกค้า</label><input id="f-name"></div>
+                <div class="f"><label>HN (รหัสผู้ป่วย)</label><input id="f-hn" placeholder="Kxxxxxx"></div>
+                <div class="f"><label>ชื่อ-นามสกุลลูกค้า</label><input id="f-name"></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                <div class="f"><label>ชื่อ Sale (ผู้จัดทำ)</label><input id="f-sale" placeholder="ระบุชื่อพนักงาน"></div>
+                <div class="f"><label>ชื่อ Sale (ผู้จัดทำ - แก้ไขได้)</label><input id="f-sale" placeholder="พิมพ์ชื่อผู้ทำเคสจริง"></div>
                 <div class="f"><label>วันที่นัด/ทำหัตถการ</label><input id="f-opdate" type="date"></div>
             </div>
 
             <div id="sec-mixed" class="form-section active">
-                <div class="sec">รายการรวม</div>
-                <textarea id="m-items" style="width:100%; min-height:80px;" placeholder="ระบุรายการต่างๆ..."></textarea>
-                <div class="f"><label>ราคาเต็มรวม (฿)</label><input id="m-full" type="number" oninput="calcMixed()"></div>
-                <div class="f"><label>ส่วนลด (%)</label><input id="m-pct" type="number" oninput="calcMixed()"></div>
+                <div class="sec">รายละเอียดรายการรวม</div>
+                <textarea id="m-items" style="width:100%; min-height:80px;" placeholder="ระบุรายการส่วนลดต่างๆ..."></textarea>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:10px;">
+                    <div class="f"><label>ราคาเต็มรวม (฿)</label><input id="m-full" type="number" oninput="calcMixed()"></div>
+                    <div class="f"><label>ส่วนลด (%)</label><input id="m-pct" type="number" oninput="calcMixed()"></div>
+                </div>
             </div>
 
             <div id="sec-room" class="form-section">
@@ -114,7 +112,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 
             <div id="sec-procedure" class="form-section">
                 <div class="sec">รายละเอียดหัตถการ</div>
-                <div class="f"><label>ชื่อหัตถการ</label><input id="p-name" placeholder="เช่น เสริมจมูก Open"></div>
+                <div class="f"><label>ชื่อหัตถการ</label><input id="p-name" placeholder="เช่น เสริมจมูก Silicone L"></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
                     <div class="f"><label>ราคาเต็ม (฿)</label><input id="p-full" type="number" oninput="calcProc()"></div>
                     <div class="f"><label>ส่วนลด (%)</label><input id="p-pct" type="number" oninput="calcProc()"></div>
@@ -124,7 +122,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
             <div id="sec-gift" class="form-section">
                 <div class="sec">ของแถม / สิทธิพิเศษ</div>
                 <textarea id="g-items" style="width:100%; min-height:80px;" placeholder="ระบุรายการของแถม..."></textarea>
-                <div class="f"><label>มูลค่ารวม (฿)</label><input id="g-val" type="number" oninput="calcGift()"></div>
+                <div class="f"><label>มูลค่ารวมของแถมโดยประมาณ (฿)</label><input id="g-val" type="number" oninput="calcGift()"></div>
             </div>
 
             <div class="sum-bar">
@@ -133,15 +131,15 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
             </div>
 
             <div class="sec">เหตุผลเพิ่มเติม</div>
-            <textarea id="f-reason" style="width:100%; min-height:60px;" placeholder="ระบุเหตุผล..."></textarea>
+            <textarea id="f-reason" style="width:100%; min-height:60px;" placeholder="ระบุเหตุผลประกอบการขอ..."></textarea>
 
             <div class="sec">ลายเซ็นผู้จัดทำ</div>
             <div style="border:2px dashed var(--border); background:#fff; height:130px; border-radius:10px; overflow:hidden;">
                 <canvas id="creatorCanvas" width="750" height="130" style="width:100%; height:100%; cursor:crosshair;"></canvas>
             </div>
-            <button onclick="clearCreatorSig()" style="margin-top:8px;">ล้างลายเซ็น</button>
+            <button onclick="clearCreatorSig()" style="margin-top:10px; font-size:12px;">ล้างลายเซ็น</button>
 
-            <button class="btn-submit" onclick="submitRequest()">📤 ส่งคำขออนุมัติ</button>
+            <button class="btn-submit" id="submit-btn" onclick="submitRequest()">📤 ส่งคำขออนุมัติ</button>
         </div>
     </div>
 
@@ -151,9 +149,12 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 
     <div id="tab-report" class="panel">
         <div class="fw">
+            <div class="sec">รายงานการขอส่วนลด</div>
             <div id="rpt-kpis" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;"></div>
-            <table class="rpt-table">
-                <thead><tr><th>วันที่</th><th>HN</th><th>ลูกค้า</th><th>ส่วนลด</th><th>พนักงาน</th><th>สถานะ</th></tr></thead>
+            <table style="width:100%; border-collapse:collapse; background:#fff; font-size:13px; border-radius:10px; overflow:hidden;">
+                <thead style="background:var(--navy); color:#fff;">
+                    <tr><th style="padding:12px;">วันที่</th><th>HN</th><th>ลูกค้า</th><th>ส่วนลด</th><th>ผู้จัดทำ</th><th>สถานะ</th></tr>
+                </thead>
                 <tbody id="rpt-tbody"></tbody>
             </table>
         </div>
@@ -163,11 +164,14 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 <div id="sigModal" class="modal-back">
   <div class="modal-box">
     <h3 id="sig-title">เซ็นอนุมัติ</h3>
-    <textarea id="approval-comment" style="width:100%; margin-top:10px; min-height:60px;" placeholder="ระบุความเห็นผู้อนุมัติ (ถ้ามี)"></textarea>
-    <input id="pin-input" type="password" placeholder="ใส่ PIN 4 หลัก" maxlength="4" style="width:100%; padding:12px; text-align:center; font-size:22px; margin:15px 0; border:1px solid #ccc; border-radius:8px;">
-    <canvas id="sigCanvas" width="450" height="170" style="border:1px solid #ddd; border-radius:5px;"></canvas>
+    <div class="f" style="margin-top:10px;">
+        <label>หมายเหตุ/Comment (ถ้ามี)</label>
+        <textarea id="approval-comment" style="width:100%; min-height:60px;" placeholder="ระบุความเห็นผู้อนุมัติ..."></textarea>
+    </div>
+    <input id="pin-input" type="password" placeholder="ใส่ PIN 4 หลัก" maxlength="4" style="width:100%; padding:12px; text-align:center; font-size:24px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px;">
+    <canvas id="sigCanvas" width="450" height="170" style="border:1px solid #ddd; border-radius:8px;"></canvas>
     <div style="display:flex; gap:10px; margin-top:20px;">
-        <button onclick="confirmSig()" style="flex:2; padding:12px; background:var(--success); color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">ยืนยัน</button>
+        <button onclick="confirmSig()" style="flex:2; padding:12px; background:var(--success); color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">ยืนยันการเซ็น</button>
         <button onclick="closeSigModal()" style="flex:1; padding:12px; background:#eee; border:none; border-radius:8px; cursor:pointer;">ยกเลิก</button>
     </div>
   </div>
@@ -177,26 +181,27 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 <div id="toast"></div>
 
 <script>
-// --- CONFIG ---
+// ════════════════ CONFIGURATION ════════════════
 const SUPABASE_URL = 'https://hnpccpuwxrebxangdane.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGNjcHV3eHJlYnhhbmdkYW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTAxNTAsImV4cCI6MjA4OTgyNjE1MH0.34CqrdqVeHF6_RUArM2UIIf3oefqrHeMwuiNJwEV1Vs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const EMAILJS_PUBLIC_KEY = 'M3GFyEbVcO48C7wy0';
 const USERS = {
     sale_mgr: { name: 'นภา ชำนาญรบ', role: 'manager', pin: '1234', email: 'chnabha2529@gmail.com' },
     cmo: { name: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo', pin: '5678', email: 'Sakulchai.t@krmhospital-inter.com' }
 };
 
 const LOGIN_ACCOUNTS = [
-    { username: 'sale', password: 'sale123', label: 'Sale Staff Team', role: 'sale' },
-    { username: 'napa', password: 'mgr1234', label: 'นภา ชำนาญรบ', role: 'manager' },
-    { username: 'cmo', password: 'cmo5678', label: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo' }
+    { username: 'sale', password: '123', label: 'Sale Staff Team', role: 'sale' },
+    { username: 'napa', password: '123', label: 'นภา ชำนาญรบ', role: 'manager' },
+    { username: 'cmo', password: '123', label: 'นายสกุลชัย ดันตระบัณฑิตย์', role: 'cmo' }
 ];
 
 let currentUser = null, allReqs = [], sigPendingId = null, curType = 'mixed';
-emailjs.init('M3GFyEbVcO48C7wy0');
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
-// --- HELPER ---
+// ════════════════ LOGIC & CALC ════════════════
 function selType(t) {
     curType = t;
     document.querySelectorAll('.dc').forEach(el => el.classList.toggle('sel', el.dataset.type === t));
@@ -205,9 +210,6 @@ function selType(t) {
     resetSum();
 }
 
-function resetSum() { document.getElementById('sum-disc').textContent = '0'; document.getElementById('sum-final').textContent = '0'; }
-
-// --- CALC ---
 function calcProc() { let f = parseFloat(document.getElementById('p-full').value)||0, p = parseFloat(document.getElementById('p-pct').value)||0; updateSum(f,p); }
 function calcMixed() { let f = parseFloat(document.getElementById('m-full').value)||0, p = parseFloat(document.getElementById('m-pct').value)||0; updateSum(f,p); }
 function calcGift() { updateSum(parseFloat(document.getElementById('g-val').value)||0, 0); }
@@ -216,19 +218,21 @@ function calcRoom() {
     let p = parseFloat(document.getElementById('r-ppn').value)||0, pct = parseFloat(document.getElementById('r-pct').value)||0;
     if(co > ci) updateSum(p * ((co-ci)/86400000), pct);
 }
-function updateSum(t,p) { let d = (t*p)/100; document.getElementById('sum-disc').textContent = d.toLocaleString(); document.getElementById('sum-final').textContent = (t-d).toLocaleString(); }
+function updateSum(t,p) { 
+    let d = (t*p)/100; 
+    document.getElementById('sum-disc').textContent = d.toLocaleString(); 
+    document.getElementById('sum-final').textContent = (t-d).toLocaleString(); 
+}
+function resetSum() { document.getElementById('sum-disc').textContent = '0'; document.getElementById('sum-final').textContent = '0'; }
 
-// --- ACTION ---
+// ════════════════ DATA ACTIONS ════════════════
 async function submitRequest() {
     let hn = document.getElementById('f-hn').value, name = document.getElementById('f-name').value, sale = document.getElementById('f-sale').value;
-    if(!hn || !name || !sale) return alert("กรุณาระบุข้อมูลให้ครบ");
+    if(!hn || !name || !sale) return alert("กรุณาระบุ HN, ชื่อลูกค้า และชื่อพนักงานขาย");
 
     let disc = parseFloat(document.getElementById('sum-disc').textContent.replace(/,/g,''));
     let final = parseFloat(document.getElementById('sum-final').textContent.replace(/,/g,''));
-    let pct = 0;
-    if(curType === 'procedure') pct = parseFloat(document.getElementById('p-pct').value)||0;
-    else if(curType === 'room') pct = parseFloat(document.getElementById('r-pct').value)||0;
-    else if(curType === 'mixed') pct = parseFloat(document.getElementById('m-pct').value)||0;
+    let pct = (curType === 'procedure' ? parseFloat(document.getElementById('p-pct').value) : (curType === 'room' ? parseFloat(document.getElementById('r-pct').value) : parseFloat(document.getElementById('m-pct').value))) || 0;
 
     let status = 'pending_mgr';
     if(currentUser.role === 'manager' && pct > 10) status = 'pending_cmo';
@@ -248,9 +252,10 @@ async function submitRequest() {
 
     const { data, error } = await sb.from('approval_requests').insert(payload).select().single();
     if(!error) {
-        showToast("ส่งคำขอเรียบร้อย");
+        showToast("ส่งคำขอสำเร็จ");
         sendEmail(data, 'manager');
         resetForm();
+        switchTab('approve');
     }
 }
 
@@ -270,7 +275,7 @@ async function doApprove(id, sig, pin, comment) {
         status: newStatus,
         manager_name: currentUser.role === 'manager' ? USERS.sale_mgr.name : r.manager_name,
         cmo_name: currentUser.role === 'cmo' ? USERS.cmo.name : r.cmo_name,
-        doc_data: { ...r.doc_data, [currentUser.role+'_sig']: sig, [currentUser.role+'_note']: comment }
+        doc_data: { ...r.doc_data, [currentUser.role+'_sig']: sig, [currentUser.role+'_comment']: comment }
     };
     if(newStatus === 'approved') updateObj.approved_at = new Date();
 
@@ -285,10 +290,10 @@ function sendEmail(r, role, msg = "") {
         customer_name: r.customer_name, hn: r.hn, sale_agent: r.sale_agent,
         discount_pct: r.discount_pct + '%', final_price: r.final_price.toLocaleString(),
         custom_message: msg, app_url: window.location.origin
-    });
+    }).catch(console.error);
 }
 
-// --- VIEW ---
+// ════════════════ VIEW & UI ════════════════
 async function loadReqs() {
     const { data } = await sb.from('approval_requests').select('*').order('created_at', {ascending: false});
     allReqs = data || [];
@@ -300,16 +305,19 @@ function renderList() {
     const list = document.getElementById('req-list');
     list.innerHTML = allReqs.map(r => `
         <div class="card">
-            <div style="display:flex; justify-content:space-between;">
-                <strong>${r.customer_name} (HN: ${r.hn})</strong>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <strong>${r.customer_name} (HN: ${r.hn})</strong><br>
+                    <span style="font-size:12px; color:var(--muted);">${r.doc_type.toUpperCase()} | ลด ${r.discount_pct}%</span>
+                </div>
                 <span class="badge ${r.status}">${r.status}</span>
             </div>
-            <p style="font-size:12px; color:var(--muted); margin-top:5px;">ประเภท: ${r.doc_type} | ลด ${r.discount_pct}% | ยื่นโดย ${r.sale_agent}</p>
-            ${r.doc_data.manager_note ? `<p style="font-size:11px; color:orange; margin-top:5px;">💬 Mgr: ${r.doc_data.manager_note}</p>` : ''}
+            <div style="font-size:11px; margin-top:10px;">ยื่นโดย: ${r.sale_agent}</div>
+            ${r.doc_data.manager_comment ? `<div style="font-size:11px; color:#B45309; background:#FFFBEB; padding:5px; margin-top:5px; border-radius:5px;">💬 Mgr: ${r.doc_data.manager_comment}</div>` : ''}
             <div style="margin-top:12px; display:flex; gap:10px;">
                 ${(r.status==='pending_mgr' && currentUser.role==='manager') || (r.status==='pending_cmo' && currentUser.role==='cmo') ? 
                 `<button onclick="openSig('${r.id}')" style="background:var(--success); color:#fff; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">✍️ เซ็นอนุมัติ</button>` : ''}
-                <button onclick="printDoc('${r.id}')" style="background:var(--navy); color:#fff; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">🖨️ พิมพ์</button>
+                <button onclick="printDoc('${r.id}')" style="background:var(--navy); color:#fff; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">🖨️ พิมพ์เอกสาร</button>
             </div>
         </div>
     `).join('');
@@ -318,56 +326,63 @@ function renderList() {
 function buildReport() {
     const approved = allReqs.filter(r => r.status === 'approved');
     document.getElementById('rpt-kpis').innerHTML = `
-        <div class="card" style="text-align:center;"><label style="font-size:10px; color:var(--muted);">ทั้งหมด</label><div style="font-size:20px; font-weight:700;">${allReqs.length}</div></div>
-        <div class="card" style="text-align:center;"><label style="font-size:10px; color:var(--muted);">อนุมัติแล้ว</label><div style="font-size:20px; font-weight:700; color:var(--success);">${approved.length}</div></div>
-        <div class="card" style="text-align:center;"><label style="font-size:10px; color:var(--muted);">ยอดสุทธิ</label><div style="font-size:20px; font-weight:700;">${approved.reduce((s,x)=>s+x.final_price,0).toLocaleString()}</div></div>`;
+        <div class="card" style="text-align:center; padding:10px;"><label style="font-size:10px; color:var(--muted);">ทั้งหมด</label><div style="font-size:18px; font-weight:700;">${allReqs.length}</div></div>
+        <div class="card" style="text-align:center; padding:10px;"><label style="font-size:10px; color:var(--muted);">อนุมัติแล้ว</label><div style="font-size:18px; font-weight:700; color:var(--success);">${approved.length}</div></div>
+        <div class="card" style="text-align:center; padding:10px;"><label style="font-size:10px; color:var(--muted);">ยอดสุทธิรวม</label><div style="font-size:18px; font-weight:700;">${approved.reduce((s,x)=>s+x.final_price,0).toLocaleString()}</div></div>`;
     document.getElementById('rpt-tbody').innerHTML = allReqs.map(r => `
-        <tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.hn}</td><td>${r.customer_name}</td><td>${r.discount_pct}%</td><td>${r.sale_agent}</td><td>${r.status}</td></tr>
+        <tr><td style="padding:10px;">${new Date(r.created_at).toLocaleDateString()}</td><td>${r.hn}</td><td>${r.customer_name}</td><td>${r.discount_pct}%</td><td>${r.sale_agent}</td><td>${r.status}</td></tr>
     `).join('') || '<tr><td colspan="6" align="center">ไม่มีข้อมูล</td></tr>';
 }
 
 function printDoc(id) {
     const r = allReqs.find(x => x.id === id), d = r.doc_data, isHigh = r.discount_pct > 10;
-    const itemDesc = r.doc_type==='procedure' ? d.procedure_name : (r.doc_type==='mixed' ? d.mixed_desc : (r.doc_type==='gift' ? d.gift_desc : 'ค่าห้องพัก'));
-    
+    const desc = r.doc_type==='procedure' ? d.procedure_name : (r.doc_type==='mixed' ? d.mixed_desc : (r.doc_type==='gift' ? d.gift_desc : 'ส่วนลดค่าห้องพัก'));
     const sigTable = `
         <table style="width:100%; margin-top:50px; text-align:center; font-size:13px; color:#000;">
             <tr>
-                <td><p style="font-weight:700;">ผู้จัดทำ</p><div style="height:60px; border-bottom:1px solid #000; margin:5px 20px;"><img src="${d.creator_sig}" style="height:55px;"></div><p>(${d.creator_name})</p></td>
-                <td>${isHigh ? `<p style="font-weight:700;">ผู้รับทราบ</p><div style="height:60px; border-bottom:1px solid #000; margin:5px 20px;">${d.manager_sig ? `<img src="${d.manager_sig}" style="height:55px;">` : ''}</div><p>(${USERS.sale_mgr.name})</p>` : ''}</td>
-                <td><p style="font-weight:700;">ผู้อนุมัติ</p><div style="height:60px; border-bottom:1px solid #000; margin:5px 20px;">${!isHigh ? (d.manager_sig ? `<img src="${d.manager_sig}" style="height:55px;">` : '') : (d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:55px;">` : '')}</div><p>(${!isHigh ? USERS.sale_mgr.name : USERS.cmo.name})</p></td>
+                <td><p style="font-weight:700;">ผู้จัดทำ</p><div style="height:60px; border-bottom:1px solid #000; margin:5px 20px;"><img src="${d.creator_sig}" style="height:55px;"></div><p>(${d.creator_name})</p><p>Sale</p></td>
+                <td>${isHigh ? `<p style="font-weight:700;">ผู้ตรวจสอบ/รับทราบ</p><div style="height:60px; border-bottom:1px solid #000; margin:5px 20px;">${d.manager_sig ? `<img src="${d.manager_sig}" style="height:55px;">` : ''}</div><p>(${USERS.sale_mgr.name})</p><p>Sale Manager</p>` : ''}</td>
+                <td><p style="font-weight:700;">ผู้อนุมัติ</p><div style="height:60px; border-bottom:1px solid #000; margin:5px 20px;">${!isHigh ? (d.manager_sig ? `<img src="${d.manager_sig}" style="height:55px;">` : '') : (d.cmo_sig ? `<img src="${d.cmo_sig}" style="height:55px;">` : '')}</div><p>(${!isHigh ? USERS.sale_mgr.name : USERS.cmo.name})</p><p>${!isHigh ? 'Sale Manager' : 'Chief Marketing Officer'}</p></td>
             </tr>
         </table>`;
 
-    const noteBox = (d.manager_note || d.cmo_note) ? `<div style="margin-top:20px; padding:10px; border:1px dashed #000; font-size:13px;"><strong>หมายเหตุผู้อนุมัติ:</strong> ${d.manager_note || ''} ${d.cmo_note || ''}</div>` : '';
+    const commentHtml = (d.manager_comment || d.cmo_comment) ? `
+        <div style="margin-top:20px; padding:15px; border:1.5px dashed #000; font-size:13px; background:#fff;">
+            <strong>หมายเหตุผู้อนุมัติ:</strong><br>
+            ${d.manager_comment ? `• (Manager): ${d.manager_comment}<br>` : ''}
+            ${d.cmo_comment ? `• (CMO): ${d.cmo_comment}` : ''}
+        </div>` : '';
 
     document.getElementById('printArea').innerHTML = `
-        <div style="padding:60px; font-family:Sarabun,sans-serif; color:#000;">
-            <h2 style="text-align:center;">บันทึกข้อความขออนุมัติส่วนลด</h2>
-            <div style="margin:30px 0; line-height:1.8;">
-                <p><strong>HN:</strong> ${r.hn} | <strong>ลูกค้า:</strong> ${r.customer_name}</p>
-                <p><strong>รายการ:</strong> ${itemDesc || '-'}</p>
+        <div style="padding:60px; font-family:Sarabun, sans-serif; color:#000; background:#fff;">
+            <div style="text-align:right; font-size:12px;">วันที่ ${new Date().toLocaleDateString('th-TH', {day:'numeric',month:'long',year:'numeric'})}</div>
+            <h2 style="text-align:center; margin:20px 0;">บันทึกข้อความขออนุมัติส่วนลด</h2>
+            <div style="margin:30px 0; line-height:2.2;">
+                <p><strong>HN:</strong> ${r.hn} | <strong>ชื่อลูกค้า:</strong> ${r.customer_name}</p>
+                <p><strong>รายการ:</strong> ${desc || '-'}</p>
                 <p><strong>วันที่นัด:</strong> ${d.opdate || '-'}</p>
-                <p><strong>เหตุผล:</strong> ${r.reason || '-'}</p>
+                <p><strong>เหตุผลการขอ:</strong> ${r.reason || '-'}</p>
             </div>
             <table border="1" style="width:100%; border-collapse:collapse; text-align:center; margin-top:15px;">
-                <tr style="background:#f4f4f4;"><th>ยอดเต็ม</th><th>ส่วนลด %</th><th>ลูกค้าจ่าย</th></tr>
-                <tr><td style="padding:10px;">${r.original_price.toLocaleString()}</td><td>${r.discount_pct}%</td><td><strong>${r.final_price.toLocaleString()}</strong></td></tr>
+                <tr style="background:#f4f4f4;"><th style="padding:10px;">ยอดเต็ม</th><th>ลด %</th><th>ลูกค้าจ่ายสุทธิ</th></tr>
+                <tr><td style="padding:15px;">${r.original_price.toLocaleString()} ฿</td><td>${r.discount_pct}%</td><td><strong>${r.final_price.toLocaleString()} ฿</strong></td></tr>
             </table>
-            ${noteBox}
+            ${commentHtml}
             ${sigTable}
+            <p style="margin-top:40px; font-size:11px; color:#888; text-align:center;">KRM Plastic Surgery Hospital</p>
         </div>`;
     window.print();
 }
 
-// --- LOGIN & SYSTEM ---
+// ════════════════ SYSTEM HELPERS ════════════════
 function doLogin() {
     const u = document.getElementById('login-user').value, p = document.getElementById('login-pass').value;
     const found = LOGIN_ACCOUNTS.find(a => a.username === u && a.password === p);
     if(found) {
         currentUser = found; document.getElementById('login-screen').style.display='none'; document.getElementById('app-body').style.display='block';
-        document.getElementById('user-badge').textContent = `${found.label} (${found.role})`; switchTab(found.role==='sale'?'form':'approve'); initSigPads();
-    } else alert("Username หรือ Password ผิด");
+        document.getElementById('user-badge').textContent = `${found.label} (${found.role})`;
+        switchTab(found.role==='sale'?'form':'approve'); initSigPads();
+    } else alert("ล็อกอินไม่สำเร็จ");
 }
 function logout() { location.reload(); }
 function switchTab(t) {
@@ -375,7 +390,13 @@ function switchTab(t) {
     document.getElementById('tab-btn-'+t).classList.add('active'); document.getElementById('tab-'+t).classList.add('active');
     loadReqs();
 }
-function openSig(id) { sigPendingId = id; document.getElementById('pin-input').value = ''; document.getElementById('approval-comment').value=''; document.getElementById('sigModal').classList.add('open'); }
+function openSig(id) { 
+    sigPendingId = id; 
+    document.getElementById('pin-input').value = ''; 
+    document.getElementById('approval-comment').value = '';
+    document.getElementById('sigModal').classList.add('open'); 
+    document.getElementById('sigCanvas').getContext('2d').clearRect(0,0,450,170);
+}
 function closeSigModal() { document.getElementById('sigModal').classList.remove('open'); }
 function confirmSig() { doApprove(sigPendingId, document.getElementById('sigCanvas').toDataURL(), document.getElementById('pin-input').value, document.getElementById('approval-comment').value); }
 function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
@@ -384,11 +405,11 @@ function initSigPads() {
     [document.getElementById('creatorCanvas'), document.getElementById('sigCanvas')].forEach(canvas => {
         const ctx = canvas.getContext('2d'); let draw = false;
         const getP = (e) => { const r = canvas.getBoundingClientRect(); const s = e.touches ? e.touches[0] : e; return { x: (s.clientX-r.left)*(canvas.width/r.width), y: (s.clientY-r.top)*(canvas.height/r.height) }; };
-        canvas.addEventListener('mousedown', e => { draw=true; let p=getP(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
-        canvas.addEventListener('mousemove', e => { if(!draw)return; let p=getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-        window.addEventListener('mouseup', () => draw=false);
-        canvas.addEventListener('touchstart', e => { e.preventDefault(); draw=true; let p=getP(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, {passive:false});
-        canvas.addEventListener('touchmove', e => { e.preventDefault(); if(!draw)return; let p=getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, {passive:false});
+        const start = (e) => { draw=true; let p=getP(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+        const move = (e) => { if(!draw)return; let p=getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', () => draw=false);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); start(e); }, {passive:false});
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); move(e); }, {passive:false});
         ctx.strokeStyle = '#1A2540'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
     });
 }
