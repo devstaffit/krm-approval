@@ -154,7 +154,12 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 .bar-row .bg{flex:1;background:var(--cream2);border-radius:4px;height:22px;overflow:hidden;}
 .bar-row .bf{height:100%;background:var(--gold);border-radius:4px;transition:width .4s;}
 .bar-row .bv{width:80px;text-align:right;font-weight:700;color:var(--gold-d);flex-shrink:0;}
-@media print{body>*:not(#printArea){display:none!important;}#printArea{display:block!important;}}
+@media print{
+  @page { size: A4 portrait; margin: 0; }
+  body>*:not(#printArea){display:none!important;}
+  #printArea{display:block!important;}
+  #printArea * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+}
 @media(max-width:620px){.doc-picker{grid-template-columns:repeat(2,1fr);}.g2,.g3{grid-template-columns:1fr;}.sum-bar{grid-template-columns:1fr 1fr;}.card-sum{grid-template-columns:1fr 1fr;}.ci-header,.ci-row{grid-template-columns:1fr 80px 50px 80px;font-size:12px;}.rpt-bar{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
@@ -245,7 +250,7 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
     <div class="sec">รายการที่ขอส่วนลด <span style="font-size:11px;color:var(--muted);font-family:sans-serif;text-transform:none;letter-spacing:0;">(เพิ่มได้ไม่จำกัด)</span></div>
     <div class="items-wrap">
       <table class="items-table">
-        <thead><tr><th style="width:38%;">รายการ</th><th style="width:14%;">ประเภท</th><th style="width:17%;text-align:right;">ราคาเต็ม (฿)</th><th style="width:11%;text-align:center;">ลด %</th><th style="width:15%;text-align:right;">ลูกค้าจ่าย (฿)</th><th style="width:5%;"></th></tr></thead>
+        <thead><tr><th style="width:32%;">รายการ</th><th style="width:12%;">ประเภท</th><th style="width:14%;text-align:right;">ราคาเต็ม (฿)</th><th style="width:9%;text-align:center;">ลด %</th><th style="width:14%;text-align:right;">ราคาลด (฿)</th><th style="width:14%;text-align:right;">ลูกค้าจ่าย (฿)</th><th style="width:5%;"></th></tr></thead>
         <tbody id="items-body"></tbody>
       </table>
     </div>
@@ -409,7 +414,7 @@ const SUPABASE_URL        = 'https://hnpccpuwxrebxangdane.supabase.co'
 const SUPABASE_KEY        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGNjcHV3eHJlYnhhbmdkYW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTAxNTAsImV4cCI6MjA4OTgyNjE1MH0.34CqrdqVeHF6_RUArM2UIIf3oefqrHeMwuiNJwEV1Vs'
 const DISCOUNT_THRESHOLD  = 10
 const USERS = {
-  sale_mgr: { name:'นภา ชำนาญรบ',               role:'Sale Manager',            email:'chnabha2529@gmail.com', pin:'1234' },
+  sale_mgr: { name:'นภา ชำนาญรบ',               role:'Sale Manager',            email:'Salesurgery@krmhospital-inter.com', pin:'1234' },
   cmo:      { name:'นายสกุลชัย ดันตระบัณฑิตย์',  role:'Chief Marketing Officer', email:'Sakulchai.t@krmhospital-inter.com',  pin:'5678' },
 }
 const LOGIN_ACCOUNTS = [
@@ -515,6 +520,7 @@ function addItem() {
     '<td><select style="border:1.5px solid var(--border);border-radius:6px;padding:7px 6px;font-family:Sarabun,sans-serif;font-size:13px;width:100%;outline:none;">'+typeOpts+'</select></td>' +
     '<td><input type="number" class="ra" placeholder="0" min="0" oninput="calcItems()"></td>' +
     '<td><input type="number" class="ra" placeholder="0" min="0" max="100" oninput="calcItems()" style="text-align:center;"></td>' +
+    '<td><input readonly tabindex="-1" style="color:#C0392B;font-weight:600;"></td>' +
     '<td><input readonly tabindex="-1"></td>' +
     '<td><button class="del-btn" onclick="delItem('+id+')">✕</button></td>'
   tbody.appendChild(tr)
@@ -526,7 +532,8 @@ function getItems() {
     var inp = tr.querySelectorAll('input'), sel = tr.querySelector('select')
     var name = inp[0].value.trim(), orig = parseFloat(inp[1].value)||0
     var pct = parseFloat(inp[2].value)||0, disc = orig*pct/100, final = orig-disc
-    inp[3].value = orig > 0 ? Math.round(final).toLocaleString('th-TH') : ''
+    inp[3].value = orig > 0 && pct > 0 ? '-' + Math.round(disc).toLocaleString('th-TH') : ''
+    inp[4].value = orig > 0 ? Math.round(final).toLocaleString('th-TH') : ''
     return { name, category: sel ? sel.value : 'procedure', orig, pct, disc:Math.round(disc), final:Math.round(final) }
   }).filter(function(r){ return r.name || r.orig > 0 })
 }
@@ -723,6 +730,7 @@ function editReq(id) {
       var tr = rows[rows.length-1]
       var inp = tr.querySelectorAll('input'), sel = tr.querySelector('select')
       inp[0].value = it.name || ''; inp[1].value = it.orig || 0; inp[2].value = it.pct || 0
+      // inp[3]=ราคาลด, inp[4]=ลูกค้าจ่าย คำนวณผ่าน calcItems() ข้างล่าง
       if (sel) sel.value = it.category || 'procedure'
     })
     calcItems()
@@ -905,9 +913,9 @@ function buildDetailHtml(r) {
 
   var tblHtml = ''
   if (items.length > 0 && !isGift) {
-    tblHtml = '<table class="dp-tbl"><thead><tr><th>รายการ</th><th style="text-align:right;">ราคาเต็ม (฿)</th><th style="text-align:center;">ลด %</th><th>ลูกค้าจ่าย (฿)</th></tr></thead><tbody>' +
-      items.map(function(it,i){ return '<tr style="background:'+(i%2===0?'var(--cream)':'#fff')+'"><td>'+(it.name||'–')+'</td><td>'+fmt(it.orig)+'</td><td style="text-align:center;">'+(it.pct>0?it.pct+'%':'–')+'</td><td style="font-weight:700;color:var(--gold-d);">'+fmt(it.final)+'</td></tr>' }).join('') +
-      (items.length>1?'<tr class="total-row"><td>รวมทั้งสิ้น</td><td>'+fmt(r.original_price)+'</td><td style="text-align:center;font-size:11px;">เฉลี่ย '+r.discount_pct+'%</td><td>'+fmt(r.final_price)+'</td></tr>':'') +
+    tblHtml = '<table class="dp-tbl"><thead><tr><th>รายการ</th><th style="text-align:right;">ราคาเต็ม (฿)</th><th style="text-align:center;">ลด %</th><th style="text-align:right;">ราคาลด (฿)</th><th style="text-align:right;">ลูกค้าจ่าย (฿)</th></tr></thead><tbody>' +
+      items.map(function(it,i){ return '<tr style="background:'+(i%2===0?'var(--cream)':'#fff')+'"><td>'+(it.name||'–')+'</td><td style="text-align:right;">'+fmt(it.orig)+'</td><td style="text-align:center;">'+(it.pct>0?it.pct+'%':'–')+'</td><td style="text-align:right;color:var(--danger);font-weight:600;">'+(it.disc>0?'-'+fmt(it.disc):'–')+'</td><td style="font-weight:700;color:var(--gold-d);text-align:right;">'+fmt(it.final)+'</td></tr>' }).join('') +
+      (items.length>1?'<tr class="total-row"><td>รวมทั้งสิ้น</td><td style="text-align:right;">'+fmt(r.original_price)+'</td><td style="text-align:center;font-size:11px;">เฉลี่ย '+r.discount_pct+'%</td><td style="text-align:right;">-'+fmt(r.discount_amount)+'</td><td style="text-align:right;">'+fmt(r.final_price)+'</td></tr>':'') +
       '</tbody></table>'
   } else if (isGift) {
     tblHtml = '<ul style="padding-left:20px;margin:10px 0;">'+(d.gift_items||[]).map(function(g){return '<li>'+g+'</li>'}).join('')+'</ul>'
@@ -1286,23 +1294,38 @@ function printDoc(id) {
   var LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
   // ─── ตาราง ───
+  // ── ตาราง print (smooth modern, เต็ม A4) ──
+  // ── ตาราง: สีดำล้วน ไม่มีพื้นหลัง ประหยัดหมึก ──
   var tbl = items.length>0&&!isGift
-    ? '<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12.5px;color:#000;">' +
-      '<thead><tr style="border-bottom:2px solid #000;">' +
-      '<th style="padding:7px 9px;text-align:left;color:#000;">รายการ</th>' +
-      '<th style="padding:7px 9px;text-align:right;color:#000;">ราคาเต็ม (฿)</th>' +
-      '<th style="padding:7px 9px;text-align:center;color:#000;">ส่วนลด %</th>' +
-      '<th style="padding:7px 9px;text-align:right;color:#000;">ลูกค้าจ่าย (฿)</th>' +
-      '</tr></thead><tbody>' +
+    ? '<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:12px;">' +
+      '<thead>' +
+      '<tr style="border-top:1px solid #000;border-bottom:1px solid #000;">' +
+      '<th style="padding:6px 8px;text-align:left;font-weight:700;font-size:11.5px;">รายการ</th>' +
+      '<th style="padding:6px 8px;text-align:right;font-weight:700;font-size:11.5px;">ราคาเต็ม (฿)</th>' +
+      '<th style="padding:6px 8px;text-align:center;font-weight:700;font-size:11.5px;">ลด %</th>' +
+      '<th style="padding:6px 8px;text-align:right;font-weight:700;font-size:11.5px;">ราคาลด (฿)</th>' +
+      '<th style="padding:6px 8px;text-align:right;font-weight:700;font-size:11.5px;">ลูกค้าจ่าย (฿)</th>' +
+      '</tr>' +
+      '</thead><tbody>' +
       items.map(function(it){
-        return '<tr><td style="padding:7px 9px;border-bottom:1px solid #ccc;color:#000;">'+(it.name||'–')+'</td>' +
-        '<td style="padding:7px 9px;text-align:right;border-bottom:1px solid #ccc;color:#000;">'+fmt(it.orig)+'</td>' +
-        '<td style="padding:7px 9px;text-align:center;border-bottom:1px solid #ccc;color:#000;">'+(it.pct>0?it.pct+'%':'–')+'</td>' +
-        '<td style="padding:7px 9px;text-align:right;border-bottom:1px solid #ccc;font-weight:700;color:#000;">'+fmt(it.final)+'</td></tr>'
+        return '<tr>' +
+        '<td style="padding:6px 8px;border-bottom:.5px solid #bbb;">'+(it.name||'–')+'</td>' +
+        '<td style="padding:6px 8px;text-align:right;border-bottom:.5px solid #bbb;">'+fmt(it.orig)+'</td>' +
+        '<td style="padding:6px 8px;text-align:center;border-bottom:.5px solid #bbb;">'+(it.pct>0?it.pct+'%':'–')+'</td>' +
+        '<td style="padding:6px 8px;text-align:right;border-bottom:.5px solid #bbb;">'+(it.disc>0?'('+fmt(it.disc)+')':'–')+'</td>' +
+        '<td style="padding:6px 8px;text-align:right;border-bottom:.5px solid #bbb;font-weight:700;">'+fmt(it.final)+'</td>' +
+        '</tr>'
       }).join('') +
-      (items.length>1?'<tr style="border-top:2px solid #000;"><td style="padding:8px 9px;color:#000;font-weight:700;">รวมทั้งสิ้น</td><td style="padding:8px 9px;color:#000;text-align:right;font-weight:700;">'+fmt(r.original_price)+'</td><td style="padding:8px 9px;color:#000;text-align:center;">เฉลี่ย '+r.discount_pct+'%</td><td style="padding:8px 9px;color:#000;text-align:right;font-weight:700;">'+fmt(r.final_price)+'</td></tr>':'') +
+      (items.length>1?
+        '<tr style="border-top:1px solid #000;border-bottom:1px solid #000;">' +
+        '<td style="padding:7px 8px;font-weight:700;">รวมทั้งสิ้น</td>' +
+        '<td style="padding:7px 8px;text-align:right;font-weight:700;">'+fmt(r.original_price)+'</td>' +
+        '<td style="padding:7px 8px;text-align:center;font-size:11px;">เฉลี่ย '+r.discount_pct+'%</td>' +
+        '<td style="padding:7px 8px;text-align:right;font-weight:700;">('+fmt(r.discount_amount)+')</td>' +
+        '<td style="padding:7px 8px;text-align:right;font-weight:700;font-size:13px;">'+fmt(r.final_price)+'</td>' +
+        '</tr>' :'') +
       '</tbody></table>'
-    : isGift ? '<ul style="font-size:13px;padding-left:20px;margin:10px 0;color:#000;">'+(d.gift_items||[]).map(function(g){return '<li>'+g+'</li>'}).join('')+'</ul>' : ''
+    : isGift ? '<ul style="font-size:12px;padding-left:20px;margin:10px 0;">'+(d.gift_items||[]).map(function(g){return '<li style="margin-bottom:3px;">'+g+'</li>'}).join('')+'</ul>' : ''
 
   var bodyText = 'เนื่องด้วยทางฝ่ายการตลาดและฝ่ายขาย มีความประสงค์ที่จะ'+(titles[r.doc_type]||'ขออนุมัติ')+'ให้กับ <strong>'+r.customer_name+'</strong> HN '+r.hn
   if (d.opdate) bodyText += ' กำหนดวันที่ '+fmtDateTh(d.opdate)
@@ -1311,24 +1334,26 @@ function printDoc(id) {
   if (r.reason) bodyText += '<br><br>เหตุผลเพิ่มเติม: '+r.reason
 
   var noteSection = d.approval_note
-    ? '<div style="margin:12px 0;padding:10px 14px;border:1.5px dashed #000;font-size:12.5px;color:#000;"><strong>หมายเหตุ CMO:</strong><br>'+d.approval_note+'</div>'
+    ? '<div style="margin:12px 0;padding:10px 14px;border:.5px dashed #888;border-radius:4px;font-size:12px;color:#333;"><strong style="color:#555;">หมายเหตุ CMO:</strong> '+d.approval_note+'</div>'
     : ''
 
   // ─── กล่องลายเซ็น print ───
   function pSigBox(title, sig, name, role, showCheck, isApprv, isRej, dateStr) {
     return '<div style="text-align:center;">' +
-      '<p style="font-size:12px;font-weight:600;margin-bottom:5px;color:#000;">'+title+'</p>' +
+      '<p style="font-size:11.5px;font-weight:700;margin:0 0 4px;">'+title+'</p>' +
       (showCheck ?
-        '<div style="display:flex;gap:18px;justify-content:center;margin-bottom:5px;">' +
-        '<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#000;"><div style="width:15px;height:15px;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;">'+(isApprv?'✓':'')+'</div>อนุมัติ</div>' +
-        '<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#000;"><div style="width:15px;height:15px;border:1.5px solid #000;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;">'+(isRej?'✓':'')+'</div>ไม่อนุมัติ</div>' +
+        '<div style="display:inline-flex;gap:16px;margin-bottom:4px;">' +
+        '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;">' +
+          '<span style="width:13px;height:13px;border:1px solid #000;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;">'+(isApprv?'✓':'')+'</span>อนุมัติ</span>' +
+        '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;">' +
+          '<span style="width:13px;height:13px;border:1px solid #000;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;">'+(isRej?'✓':'')+'</span>ไม่อนุมัติ</span>' +
         '</div>' : '') +
-      '<div style="border-top:1px solid #000;margin:'+(showCheck?'30':'50')+'px 12px 6px;position:relative;">' +
-        (sig ? '<img src="'+sig+'" style="height:38px;max-width:120px;position:absolute;bottom:2px;left:50%;transform:translateX(-50%);object-fit:contain;filter:grayscale(100%);">' : '') +
+      '<div style="border-top:.5px solid #555;margin:'+(showCheck?'26':'44')+'px 8px 5px;position:relative;">' +
+        (sig ? '<img src="'+sig+'" style="height:36px;max-width:110px;position:absolute;bottom:1px;left:50%;transform:translateX(-50%);object-fit:contain;filter:grayscale(100%) brightness(0);">' : '') +
       '</div>' +
-      '<p style="font-size:12px;color:#000;">('+name+')</p>' +
-      '<p style="font-size:11px;color:#000;">'+role+'</p>' +
-      (dateStr ? '<p style="font-size:10px;color:#aaa;margin-top:3px;">'+dateStr+'</p>' : '') +
+      '<p style="font-size:11.5px;margin:3px 0 1px;">('+name+')</p>' +
+      '<p style="font-size:10.5px;color:#444;margin:0;">'+role+'</p>' +
+      (dateStr ? '<p style="font-size:9.5px;color:#666;margin-top:2px;">'+dateStr+'</p>' : '') +
     '</div>'
   }
 
@@ -1365,24 +1390,41 @@ function printDoc(id) {
   }
 
   document.getElementById('printArea').innerHTML =
-    '<div style="font-family:Sarabun,sans-serif;color:#000;padding:36px 46px;max-width:720px;margin:auto;">' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;padding-bottom:12px;border-bottom:1.5px solid #000;">' +
-      '<div>'+(LOGO_B64?'<img src="data:image/jpeg;base64,'+LOGO_B64+'" style="height:44px;object-fit:contain;object-position:left;filter:grayscale(100%);">':'<strong style="font-size:16px;color:#000;">KRM</strong>')+
-      '<div style="font-size:10.5px;color:#000;margin-top:4px;line-height:1.7;">โรงพยาบาลเฉพาะทางศัลยกรรมตกแต่งขนาดเล็กเคอาร์เอ็ม<br>บริษัท เคโอเอ็ม คอร์ป จำกัด</div></div>' +
-      '<div style="text-align:right;font-size:12px;color:#000;padding-top:4px;"><div style="font-weight:700;letter-spacing:.05em;">FM-MKT-002-00</div><div style="margin-top:2px;">วันที่ '+thDate+'</div></div>' +
+    '<div style="font-family:Sarabun,Arial,sans-serif;color:#000;padding:1cm;width:calc(210mm - 2cm);min-height:calc(297mm - 2cm);margin:0 auto;box-sizing:border-box;background:#fff;">' +
+
+    // ── Header ──
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #000;">' +
+      '<div>'+(LOGO_B64?'<img src="data:image/jpeg;base64,'+LOGO_B64+'" style="height:40px;object-fit:contain;object-position:left;filter:grayscale(100%) brightness(0);">':'<strong style="font-size:16px;">KRM</strong>')+
+        '<div style="font-size:9.5px;color:#333;margin-top:3px;line-height:1.6;">โรงพยาบาลเฉพาะทางศัลยกรรมตกแต่งขนาดเล็กเคอาร์เอ็ม<br>บริษัท เคโอเอ็ม คอร์ป จำกัด</div>' +
+      '</div>' +
+      '<div style="text-align:right;">' +
+        '<div style="font-size:11px;font-weight:700;letter-spacing:.04em;">FM-MKT-002-00</div>' +
+        '<div style="font-size:11px;margin-top:2px;color:#333;">วันที่ '+thDate+'</div>' +
+      '</div>' +
     '</div>' +
-    '<div style="font-size:12.5px;margin-bottom:12px;line-height:2.1;color:#000;">' +
-      '<div><strong style="display:inline-block;width:66px;">ส่วนงาน</strong>ฝ่ายการตลาดและฝ่ายขาย</div>' +
-      '<div><strong style="display:inline-block;width:66px;">เรื่อง</strong>'+(titles[r.doc_type]||r.doc_type)+'</div>' +
-      '<div><strong style="display:inline-block;width:66px;">เรียน</strong>ผู้บริหาร/กรรมการ/ผู้จัดการที่มีส่วนเกี่ยวข้อง</div>' +
-    '</div>' +
-    '<div style="font-size:13px;line-height:2.1;text-indent:2.5em;margin-bottom:8px;text-align:justify;color:#000;">'+bodyText+'</div>' +
-    tbl + noteSection +
-    '<p style="font-size:13px;margin:16px 0 36px;color:#000;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>' +
+
+    // ── เรียน / เรื่อง ──
+    '<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:12px;line-height:2;">' +
+      '<tr><td style="width:60px;font-weight:700;vertical-align:top;">ส่วนงาน</td><td>ฝ่ายการตลาดและฝ่ายขาย</td></tr>' +
+      '<tr><td style="font-weight:700;vertical-align:top;">เรื่อง</td><td>'+(titles[r.doc_type]||r.doc_type)+'</td></tr>' +
+      '<tr><td style="font-weight:700;vertical-align:top;">เรียน</td><td>ผู้บริหาร/กรรมการ/ผู้จัดการที่มีส่วนเกี่ยวข้อง</td></tr>' +
+    '</table>' +
+
+    // ── เนื้อหา ──
+    '<p style="font-size:12.5px;line-height:2;text-indent:2.5em;margin:0 0 8px;text-align:justify;">'+bodyText+'</p>' +
+
+    tbl +
+
+    (d.approval_note ? '<div style="margin:10px 0;padding:8px 12px;border:.5px solid #888;font-size:12px;"><strong>หมายเหตุ:</strong> '+d.approval_note+'</div>' : '') +
+
+    '<p style="font-size:12.5px;margin:14px 0 32px;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>' +
+
     sigSection +
-    '<div style="margin-top:24px;padding-top:10px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:10px;color:#aaa;">' +
+
+    '<div style="margin-top:20px;padding-top:6px;border-top:.5px solid #ccc;display:flex;justify-content:space-between;font-size:9.5px;color:#777;">' +
       '<span>เริ่มใช้วันที่ 28 มีนาคม 2569</span><span>FM-MKT-002-00</span>' +
     '</div>' +
+
     '</div>'
   window.print()
 }
