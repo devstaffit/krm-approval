@@ -803,15 +803,21 @@ function confirmNote() {
 function _sendEmail(toUser, r) {
   var tl = { mixed:'รายการรวม', room:'ส่วนลดห้องพัก', procedure:'ส่วนลดหัตถการ', gift:'ของแถม/สิทธิพิเศษ' }
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    to_email: toUser.email, to_role: toUser.role,
-    doc_type: tl[r.doc_type]||r.doc_type,
-    customer_name: r.customer_name, hn: r.hn, sale_agent: r.sale_agent,
-    discount_pct: (r.discount_pct||0)+'%',
-    discount_amount: fmt(r.discount_amount||0)+' ฿',
-    final_price: fmt(r.final_price||0)+' ฿',
-    reason: r.reason||'–', app_url: APP_URL
-  }).then(function(){ showToast('📧 ส่ง email แจ้ง '+toUser.role+' แล้ว') })
-   .catch(function(err){ console.error('EmailJS:',err) })
+    to_email:        toUser.email,
+    to_name:         toUser.name,                          // ชื่อเต็ม เช่น นภา ชำนาญรบ
+    to_role:         toUser.role,                          // ตำแหน่ง เช่น Sale Manager
+    to_name_role:    toUser.name + ' (' + toUser.role + ')', // รวมชื่อ+ตำแหน่ง
+    doc_type:        tl[r.doc_type]||r.doc_type,
+    customer_name:   r.customer_name,
+    hn:              r.hn,
+    sale_agent:      r.sale_agent,
+    discount_pct:    (r.discount_pct||0),                  // ตัวเลขล้วน (template ต่อ % เอง)
+    discount_amount: fmt(r.discount_amount||0),            // ตัวเลขล้วน
+    final_price:     fmt(r.final_price||0),                // ตัวเลขล้วน
+    reason:          r.reason||'–',
+    app_url:         APP_URL
+  }).then(function(){ showToast('📧 ส่ง email แจ้ง '+toUser.name+' แล้ว') })
+   .catch(function(err){ console.error('EmailJS:',err); showToast('⚠️ ส่ง email ไม่สำเร็จ') })
 }
 
 function resetForm() {
