@@ -883,7 +883,7 @@ const DP = { mixed:'dp-mixed', room:'dp-room', procedure:'dp-procedure', gift:'d
 function buildDetailHtml(r) {
   var d = r.doc_data||{}, items = d.items||[], isGift = r.doc_type==='gift'
   var ap = getApprover(r.discount_pct||0)
-  var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   var metaHtml = '<div class="dp-meta">' +
     '<div><strong>ลูกค้า</strong>'+r.customer_name+' · HN '+r.hn+'</div>' +
@@ -1290,7 +1290,7 @@ function printDoc(id) {
   var isA = r.status==='approved', isR = r.status==='rejected', isGift = r.doc_type==='gift'
   var isHigh = (r.discount_pct||0) > DISCOUNT_THRESHOLD
   var ap = getApprover(r.discount_pct||0)
-  var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   var LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
   // ─── ตาราง ───
@@ -1390,7 +1390,7 @@ function printDoc(id) {
   }
 
   document.getElementById('printArea').innerHTML =
-    '<div style="font-family:Sarabun,Arial,sans-serif;color:#000;padding:1cm;width:calc(210mm - 2cm);min-height:calc(297mm - 2cm);margin:0 auto;box-sizing:border-box;background:#fff;">' +
+    '<div style="font-family:Sarabun,Arial,sans-serif;color:#000;padding:1cm 1cm 2.5cm 1cm;width:calc(210mm - 2cm);min-height:calc(297mm - 2cm);margin:0 auto;box-sizing:border-box;background:#fff;position:relative;">' +
 
     // ── Header ──
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #000;">' +
@@ -1421,7 +1421,8 @@ function printDoc(id) {
 
     sigSection +
 
-    '<div style="margin-top:20px;padding-top:6px;border-top:.5px solid #ccc;display:flex;justify-content:space-between;font-size:9.5px;color:#777;">' +
+    // ── Footer ติดขอบล่าง 1cm ──
+    '<div style="position:absolute;bottom:1cm;left:1cm;right:1cm;padding-top:6px;border-top:.5px solid #ccc;display:flex;justify-content:space-between;font-size:9.5px;color:#777;">' +
       '<span>เริ่มใช้วันที่ 28 มีนาคม 2569</span><span>FM-MKT-002-00</span>' +
     '</div>' +
 
