@@ -1417,7 +1417,19 @@ function printDoc(id) {
 
     (d.approval_note ? '<div style="margin:10px 0;padding:8px 12px;border:.5px solid #888;font-size:12px;"><strong>หมายเหตุ:</strong> '+d.approval_note+'</div>' : '') +
 
-    '<p style="font-size:12.5px;margin:14px 0 32px;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>' +
+    // ── ยอดเงินตัวหนังสือ ──
+    (!isGift && r.final_price > 0 ?
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;margin:12px 0 14px;padding:8px 12px;border-top:.5px solid #bbb;border-bottom:.5px solid #bbb;">' +
+        '<span style="font-size:12px;color:#333;">('+numberToThaiText(r.final_price)+')</span>' +
+        '<span style="font-size:13px;font-weight:700;white-space:nowrap;margin-left:16px;">' +
+          'ยอดเงินที่ต้องชำระ&nbsp;&nbsp;' +
+          '<span style="font-size:15px;">'+fmt(r.final_price)+'</span>' +
+          '&nbsp;บาท' +
+        '</span>' +
+      '</div>'
+    : '') +
+
+    '<p style="font-size:12.5px;margin:10px 0 28px;">จึงเรียนมาเพื่อโปรดพิจารณาอนุมัติ</p>' +
 
     sigSection +
 
@@ -1504,6 +1516,50 @@ function switchTab(t) {
 
 // ── HELPERS ──
 function fmt(n) { return Math.round(n||0).toLocaleString('th-TH') }
+
+// ── แปลงตัวเลขเป็นตัวอักษรไทย ──
+function numberToThaiText(amount) {
+  amount = Math.round(amount||0)
+  if (amount === 0) return 'ศูนย์บาทถ้วน'
+  var ones = ['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า']
+  var tens = ['','สิบ','ยี่สิบ','สามสิบ','สี่สิบ','ห้าสิบ','หกสิบ','เจ็ดสิบ','แปดสิบ','เก้าสิบ']
+  var places = ['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า']
+  function readGroup(n) {
+    var s = ''
+    var h = Math.floor(n/100), t = Math.floor((n%100)/10), o = n%10
+    if (h) s += ones[h]+'ร้อย'
+    if (t === 1) s += 'สิบ'
+    else if (t > 1) s += tens[t]
+    if (o === 1 && t > 0) s += 'เอ็ด'
+    else if (o > 0) s += ones[o]
+    return s
+  }
+  var units = ['','พัน','หมื่น','แสน','ล้าน']
+  var str = '', n = amount, mil = 0
+  // แยก ล้าน
+  var millions = Math.floor(n/1000000)
+  if (millions > 0) {
+    str += readGroup(millions)+'ล้าน'
+    n = n % 1000000
+  }
+  // หลักหมื่น-ร้อย-สิบ-หน่วย
+  var remainder = n
+  var h5 = Math.floor(remainder/100000); remainder %= 100000
+  var h4 = Math.floor(remainder/10000);  remainder %= 10000
+  var h3 = Math.floor(remainder/1000);   remainder %= 1000
+  var h2 = Math.floor(remainder/100);    remainder %= 100
+  var h1 = Math.floor(remainder/10);     remainder %= 10
+  var h0 = remainder
+  if (h5) str += ones[h5]+'แสน'
+  if (h4) str += ones[h4]+'หมื่น'
+  if (h3) str += ones[h3]+'พัน'
+  if (h2) str += ones[h2]+'ร้อย'
+  if (h1 === 1) str += 'สิบ'
+  else if (h1 > 1) str += tens[h1]
+  if (h0 === 1 && h1 > 0) str += 'เอ็ด'
+  else if (h0 > 0) str += ones[h0]
+  return str + 'บาทถ้วน'
+}
 function fmtDateTh(d) {
   if (!d) return '–'
   var months=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
