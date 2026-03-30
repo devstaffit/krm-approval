@@ -883,7 +883,7 @@ const DP = { mixed:'dp-mixed', room:'dp-room', procedure:'dp-procedure', gift:'d
 function buildDetailHtml(r) {
   var d = r.doc_data||{}, items = d.items||[], isGift = r.doc_type==='gift'
   var ap = getApprover(r.discount_pct||0)
-  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   var metaHtml = '<div class="dp-meta">' +
     '<div><strong>ลูกค้า</strong>'+r.customer_name+' · HN '+r.hn+'</div>' +
@@ -1290,7 +1290,7 @@ function printDoc(id) {
   var isA = r.status==='approved', isR = r.status==='rejected', isGift = r.doc_type==='gift'
   var isHigh = (r.discount_pct||0) > DISCOUNT_THRESHOLD
   var ap = getApprover(r.discount_pct||0)
-  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   var LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
   // ─── ตาราง ───
