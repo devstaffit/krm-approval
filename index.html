@@ -255,9 +255,10 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
       </table>
     </div>
     <button class="add-row-btn" onclick="addItem()">+ เพิ่มรายการ</button>
-    <div class="sum-bar">
+    <div class="sum-bar" style="grid-template-columns:repeat(4,1fr);">
       <div><label>ยอดรวมเต็ม</label><div class="v" id="sum-orig">–</div></div>
       <div><label>ส่วนลดรวม</label><div class="v" id="sum-disc">–</div></div>
+      <div><label>ส่วนลด (%)</label><div class="v" id="sum-pct" style="color:var(--gold-l);">–</div></div>
       <div><label>ลูกค้าจ่ายรวม</label><div class="v hl" id="sum-final">–</div></div>
     </div>
   </div>
@@ -518,34 +519,88 @@ function addItem() {
   tr.id = 'item-' + id
   tr.innerHTML = '<td><input placeholder="ชื่อรายการ" oninput="calcItems()"></td>' +
     '<td><select style="border:1.5px solid var(--border);border-radius:6px;padding:7px 6px;font-family:Sarabun,sans-serif;font-size:13px;width:100%;outline:none;">'+typeOpts+'</select></td>' +
-    '<td><input type="number" class="ra" placeholder="0" min="0" oninput="calcItems()"></td>' +
-    '<td><input type="number" class="ra" placeholder="0" min="0" max="100" oninput="calcItems()" style="text-align:center;"></td>' +
-    '<td><input readonly tabindex="-1" style="color:#C0392B;font-weight:600;"></td>' +
-    '<td><input readonly tabindex="-1"></td>' +
+    '<td><input type="number" class="ra" placeholder="0" min="0" oninput="onOrigChange(this)" style="text-align:right;"></td>' +
+    '<td><input type="number" class="ra" placeholder="0" min="0" max="100" step="0.01" oninput="onPctChange(this)" style="text-align:center;"></td>' +
+    '<td><input type="number" class="ra" placeholder="0" min="0" oninput="onDiscChange(this)" style="text-align:right;color:var(--danger);font-weight:600;"></td>' +
+    '<td><input readonly tabindex="-1" style="text-align:right;"></td>' +
     '<td><button class="del-btn" onclick="delItem('+id+')">✕</button></td>'
   tbody.appendChild(tr)
   tr.querySelector('input').focus()
 }
 function delItem(id) { var e = document.getElementById('item-'+id); if(e){ e.remove(); calcItems() } }
+
+// ── คำนวณ row เดียว และ sync ช่องอื่น ──
+function _calcRow(tr) {
+  var inp = tr.querySelectorAll('input')
+  var orig = parseFloat(inp[1].value)||0
+  var pct  = parseFloat(inp[2].value)||0
+  var disc = parseFloat(inp[3].value)||0
+  // sync: ถ้ามี pct → disc คำนวณจาก pct; ถ้ากรอก disc → pct คำนวณจาก disc
+  // (เรียกจาก onOrigChange/onPctChange/onDiscChange ซึ่งจะ set ค่าให้ก่อน)
+  var final = Math.max(0, orig - disc)
+  inp[4].value = orig > 0 ? Math.round(final).toLocaleString('th-TH') : ''
+  return { orig, pct, disc:Math.round(disc), final:Math.round(final) }
+}
+
+// กรอก ราคาเต็ม → คำนวณ disc จาก pct (ถ้ามี)
+function onOrigChange(el) {
+  var tr = el.closest('tr'), inp = tr.querySelectorAll('input')
+  var orig = parseFloat(inp[1].value)||0
+  var pct  = parseFloat(inp[2].value)||0
+  if (pct > 0) {
+    inp[3].value = Math.round(orig*pct/100) || ''
+  }
+  _calcRow(tr); calcItems()
+}
+
+// กรอก % → คำนวณ disc จาก orig
+function onPctChange(el) {
+  var tr = el.closest('tr'), inp = tr.querySelectorAll('input')
+  var orig = parseFloat(inp[1].value)||0
+  var pct  = parseFloat(inp[2].value)||0
+  inp[3].value = orig > 0 && pct > 0 ? Math.round(orig*pct/100) : ''
+  _calcRow(tr); calcItems()
+}
+
+// กรอก ราคาลด → คำนวณ % จาก orig
+function onDiscChange(el) {
+  var tr = el.closest('tr'), inp = tr.querySelectorAll('input')
+  var orig = parseFloat(inp[1].value)||0
+  var disc = parseFloat(inp[3].value)||0
+  if (orig > 0 && disc > 0) {
+    var pct = disc/orig*100
+    inp[2].value = Math.round(pct*100)/100  // ทศนิยม 2 ตำแหน่ง
+  } else {
+    inp[2].value = ''
+  }
+  _calcRow(tr); calcItems()
+}
+
 function getItems() {
   return [...document.querySelectorAll('#items-body tr')].map(function(tr) {
     var inp = tr.querySelectorAll('input'), sel = tr.querySelector('select')
-    var name = inp[0].value.trim(), orig = parseFloat(inp[1].value)||0
-    var pct = parseFloat(inp[2].value)||0, disc = orig*pct/100, final = orig-disc
-    inp[3].value = orig > 0 && pct > 0 ? '-' + Math.round(disc).toLocaleString('th-TH') : ''
-    inp[4].value = orig > 0 ? Math.round(final).toLocaleString('th-TH') : ''
-    return { name, category: sel ? sel.value : 'procedure', orig, pct, disc:Math.round(disc), final:Math.round(final) }
+    var name = inp[0].value.trim()
+    var orig = parseFloat(inp[1].value)||0
+    var pct  = parseFloat(inp[2].value)||0
+    var disc = parseFloat(inp[3].value)||0
+    var final= Math.max(0, Math.round(orig - disc))
+    inp[4].value = orig > 0 ? final.toLocaleString('th-TH') : ''
+    return { name, category: sel ? sel.value : 'procedure', orig, pct:Math.round(pct*100)/100, disc:Math.round(disc), final }
   }).filter(function(r){ return r.name || r.orig > 0 })
 }
+
 function calcItems() {
   var items = getItems()
   var tO = items.reduce(function(s,i){return s+i.orig},0)
   var tD = items.reduce(function(s,i){return s+i.disc},0)
   var tF = items.reduce(function(s,i){return s+i.final},0)
+  var avgPct = tO > 0 ? Math.round(tD/tO*1000)/10 : 0
   document.getElementById('sum-orig').textContent  = tO ? fmt(tO)+' ฿' : '–'
   document.getElementById('sum-disc').textContent  = tD ? fmt(tD)+' ฿' : '–'
+  var pctEl = document.getElementById('sum-pct')
+  if (pctEl) pctEl.textContent = avgPct > 0 ? avgPct+'%' : '–'
   document.getElementById('sum-final').textContent = tF ? fmt(tF)+' ฿' : '–'
-  updateCreatorBanner(tO > 0 ? tD/tO*100 : 0)
+  updateCreatorBanner(avgPct)
 }
 function calcRoom() {
   var ci = document.getElementById('r-ci').value, co = document.getElementById('r-co').value
@@ -729,8 +784,10 @@ function editReq(id) {
       var rows = document.querySelectorAll('#items-body tr')
       var tr = rows[rows.length-1]
       var inp = tr.querySelectorAll('input'), sel = tr.querySelector('select')
-      inp[0].value = it.name || ''; inp[1].value = it.orig || 0; inp[2].value = it.pct || 0
-      // inp[3]=ราคาลด, inp[4]=ลูกค้าจ่าย คำนวณผ่าน calcItems() ข้างล่าง
+      inp[0].value = it.name || ''
+      inp[1].value = it.orig || 0
+      inp[2].value = it.pct  || 0
+      inp[3].value = it.disc || 0   // restore ราคาลด ด้วย
       if (sel) sel.value = it.category || 'procedure'
     })
     calcItems()
