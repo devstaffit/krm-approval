@@ -414,6 +414,11 @@ body{font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);
 const SUPABASE_URL        = 'https://hnpccpuwxrebxangdane.supabase.co'
 const SUPABASE_KEY        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGNjcHV3eHJlYnhhbmdkYW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTAxNTAsImV4cCI6MjA4OTgyNjE1MH0.34CqrdqVeHF6_RUArM2UIIf3oefqrHeMwuiNJwEV1Vs'
 const DISCOUNT_THRESHOLD  = 10
+// ── เงื่อนไขพิเศษ "ยา" — Manager อนุมัติได้เลย ไม่สนใจ % ──
+const MEDICINE_CONFIG = {
+  types:      ['medicine'],          // ประเภทที่เป็น "ยา" (ใช้ใน typeOpts)
+  max_amount: 5000,                  // วงเงินสูงสุดที่ Manager อนุมัติได้ (บาท) — แก้ได้ที่นี่
+}
 const USERS = {
   sale_mgr: { name:'นภา ชำนาญรบ',               role:'Sale Manager',            email:'chnabha2529@gmail.com', pin:'1234' },
   cmo:      { name:'นายสกุลชัย ดันตระบัณฑิตย์',  role:'Chief Marketing Officer', email:'Sakulchai.t@krmhospital-inter.com',  pin:'5678' },
@@ -465,7 +470,18 @@ var currentUser = null
 // ════════════════════════════════════════════════
 //  ROUTING LOGIC — กำหนด initial status ตอน submit
 // ════════════════════════════════════════════════
-function getInitialStatus(dpct) {
+
+// ─── ตรวจว่า request เป็น "ยา" ที่อยู่ในวงเงิน Manager ───
+function isMedicineCase(items, finalPrice) {
+  if (!items || !items.length) return false
+  var allMedicine = items.every(function(it){ return it.category === 'medicine' })
+  var withinBudget = (finalPrice || 0) <= MEDICINE_CONFIG.max_amount
+  return allMedicine && withinBudget
+}
+
+function getInitialStatus(dpct, items, finalPrice) {
+  // ยา ทุกรายการ + ไม่เกินวงเงิน → Manager อนุมัติได้เลยเสมอ
+  if (isMedicineCase(items, finalPrice)) return 'pending_mgr'
   // Manager สร้างเองและ >10% → ข้ามไป pending_cmo ทันที
   if (currentUser && currentUser.role === 'manager' && dpct > DISCOUNT_THRESHOLD) {
     return 'pending_cmo'
@@ -474,7 +490,12 @@ function getInitialStatus(dpct) {
   return 'pending_mgr'
 }
 
-function getApprover(pct) {
+function getApprover(r) {
+  // รองรับทั้ง getApprover(record) และ getApprover(pct_number) แบบเดิม
+  var pct = (typeof r === 'object') ? (r.discount_pct||0) : (r||0)
+  var items = (typeof r === 'object' && r.doc_data) ? (r.doc_data.items||[]) : []
+  var finalPrice = (typeof r === 'object') ? (r.final_price||0) : 0
+  if (isMedicineCase(items, finalPrice)) return USERS.sale_mgr  // ยา → Manager เสมอ
   return pct <= DISCOUNT_THRESHOLD ? USERS.sale_mgr : USERS.cmo
 }
 
@@ -482,17 +503,24 @@ function getApprover(pct) {
 function canApprove(r) {
   if (!currentUser || !r) return false
   var role = currentUser.role
+  var items = (r.doc_data && r.doc_data.items) || []
+  var isMed = isMedicineCase(items, r.final_price||0)
   // Manager: ทำได้เมื่อ status = pending_mgr
   if (role === 'manager') return r.status === 'pending_mgr'
-  // CMO: ทำได้เมื่อ status = pending_cmo
-  if (role === 'cmo')     return r.status === 'pending_cmo'
+  // CMO: ทำได้เมื่อ status = pending_cmo และ ไม่ใช่ยา
+  if (role === 'cmo') return r.status === 'pending_cmo' && !isMed
   return false
 }
 
-// ─── isManagerAck: Manager กำลัง "รับทราบ" (>10%) หรือ "อนุมัติ final" (≤10%) ───
+// ─── isManagerAck: Manager "รับทราบ" (ต้องส่งต่อ CMO) หรือ "อนุมัติ final" ───
 function isManagerAck(r) {
-  // ถ้า Manager และ discount >10% → เป็นการ "รับทราบ" แล้วส่งต่อ CMO
-  return currentUser && currentUser.role === 'manager' && (r.discount_pct||0) > DISCOUNT_THRESHOLD
+  var pct   = r.discount_pct||0
+  var items = (r.doc_data && r.doc_data.items) || []
+  var isMed = isMedicineCase(items, r.final_price||0)
+  // ยา → Manager อนุมัติ final เลย (ไม่รับทราบ)
+  if (isMed) return false
+  // >10% และ Manager → รับทราบ ส่งต่อ CMO
+  return currentUser && currentUser.role === 'manager' && pct > DISCOUNT_THRESHOLD
 }
 
 function canEdit(r) {
@@ -509,8 +537,9 @@ function selType(t) {
 }
 
 // ── ITEMS TABLE ──
-const typeOpts = ['procedure','room','package','other'].map(function(v){
-  return '<option value="'+v+'">'+ ({procedure:'หัตถการ',room:'ห้องพัก',package:'แพ็กเกจ',other:'อื่นๆ'}[v])+'</option>'
+const TYPE_LABELS = {procedure:'หัตถการ', room:'ห้องพัก', package:'แพ็กเกจ', medicine:'ยา', other:'อื่นๆ'}
+const typeOpts = ['procedure','room','package','medicine','other'].map(function(v){
+  return '<option value="'+v+'">'+ TYPE_LABELS[v] +'</option>'
 }).join('')
 
 function addItem() {
@@ -600,7 +629,9 @@ function calcItems() {
   var pctEl = document.getElementById('sum-pct')
   if (pctEl) pctEl.textContent = avgPct > 0 ? avgPct+'%' : '–'
   document.getElementById('sum-final').textContent = tF ? fmt(tF)+' ฿' : '–'
-  updateCreatorBanner(avgPct)
+  var _allItems = getItems()
+  var _totFinal = _allItems.reduce(function(s,i){return s+i.final},0)
+  updateCreatorBanner(avgPct, _allItems, _totFinal)
 }
 function calcRoom() {
   var ci = document.getElementById('r-ci').value, co = document.getElementById('r-co').value
@@ -625,18 +656,24 @@ function calcProc() {
   document.getElementById('p-amt').value = Math.round(disc)
   updateCreatorBanner(pct)
 }
-function updateCreatorBanner(pct) {
+function updateCreatorBanner(pct, items, finalPrice) {
   var banner = document.getElementById('creator-banner')
   var label  = document.getElementById('creator-name-label')
   if (!banner) return
   var sale = document.getElementById('f-sale') ? document.getElementById('f-sale').value.trim() : ''
+  if (label) label.textContent = sale ? '('+sale+')' : ''
+  // ── ตรวจยาก่อน ──
+  var _isMed = isMedicineCase(items||[], finalPrice||0)
+  if (_isMed) {
+    banner.style.cssText = 'display:block;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:4px;background:#F0FFF4;border:1px solid #68D391;color:#276749;'
+    banner.innerHTML = '<strong>💊 รายการยา</strong> — Manager อนุมัติได้เลย (วงเงินไม่เกิน <strong>'+fmt(MEDICINE_CONFIG.max_amount)+' ฿</strong>)'
+    return
+  }
   if (pct > DISCOUNT_THRESHOLD) {
     banner.style.cssText = 'display:block;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:4px;background:#F5F3FF;border:1px solid #AFA9EC;color:#3C3489;'
     banner.innerHTML = '<strong>📋 ส่วนลด > '+DISCOUNT_THRESHOLD+'%</strong> — ต้องผ่าน Manager รับทราบ แล้ว CMO อนุมัติ'
-    if (label) label.textContent = sale ? '('+sale+')' : ''
   } else {
     banner.style.display = 'none'
-    if (label) label.textContent = sale ? '('+sale+')' : ''
   }
 }
 function addGift() {
@@ -707,7 +744,7 @@ async function submitRequest() {
   }
 
   // ─── กำหนด initial status ───
-  var initStatus = getInitialStatus(dpct)
+  var initStatus = getInitialStatus(dpct, items, Math.round(final))
 
   var payload = {
     doc_type: curType, hn, customer_name: name, sale_agent: sale,
@@ -939,7 +976,7 @@ const DP = { mixed:'dp-mixed', room:'dp-room', procedure:'dp-procedure', gift:'d
 
 function buildDetailHtml(r) {
   var d = r.doc_data||{}, items = d.items||[], isGift = r.doc_type==='gift'
-  var ap = getApprover(r.discount_pct||0)
+  var ap = getApprover(r)
   var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   var metaHtml = '<div class="dp-meta">' +
@@ -1057,13 +1094,19 @@ function renderList() {
 
   el.innerHTML = data.map(function(r) {
     var d = r.doc_data||{}, items = d.items||[], isGift = r.doc_type==='gift'
-    var ap = getApprover(r.discount_pct||0)
+    var ap = getApprover(r)
 
     // ─── Route badge ───
     var routeStyle = '', routeText = ''
+    var _items  = d.items||[]
+    var _isMed  = isMedicineCase(_items, r.final_price||0)
     if (r.status === 'pending_mgr') {
       routeStyle = 'background:#FEF3C7;color:#92400E;'
-      routeText  = (r.discount_pct||0) > DISCOUNT_THRESHOLD ? 'ขั้น 1/2: รอ Manager รับทราบ' : 'รอ Manager อนุมัติ'
+      if (_isMed) {
+        routeText = '💊 ยา — Manager อนุมัติได้เลย (วงเงินไม่เกิน '+fmt(MEDICINE_CONFIG.max_amount)+' ฿)'
+      } else {
+        routeText = (r.discount_pct||0) > DISCOUNT_THRESHOLD ? 'ขั้น 1/2: รอ Manager รับทราบ' : 'รอ Manager อนุมัติ'
+      }
     } else if (r.status === 'pending_cmo') {
       routeStyle = 'background:#EDE9FE;color:#5B21B6;'
       routeText  = (r.discount_pct||0) > DISCOUNT_THRESHOLD ? 'ขั้น 2/2: รอ CMO อนุมัติ final' : 'รอ CMO อนุมัติ'
@@ -1346,7 +1389,7 @@ function printDoc(id) {
   var thDate = today.getDate()+' '+monthsTH[today.getMonth()]+' '+(today.getFullYear()+543)
   var isA = r.status==='approved', isR = r.status==='rejected', isGift = r.doc_type==='gift'
   var isHigh = (r.discount_pct||0) > DISCOUNT_THRESHOLD
-  var ap = getApprover(r.discount_pct||0)
+  var ap = getApprover(r)
   var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   var LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
