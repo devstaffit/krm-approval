@@ -1031,22 +1031,30 @@ function buildDetailHtml(r) {
     (!d.mgr_signature && !d.creator_role &&
      (r.status === 'pending_cmo' || r.status === 'approved' || r.status === 'rejected'))
   )
+  var _dItems = d.items||[]
+  var _isMedD = isMedicineCase(_dItems, r.final_price||0)
   var sigRow = ''
-  if (isHigh && !creatorIsMgr) {
-    // Sale จัดทำ: 3 กล่อง
+  if (_isMedD) {
+    // ยา → 2 กล่อง: ผู้จัดทำ | ผู้ตรวจสอบ/ผู้อนุมัติ (Sale Manager คนเดียว)
+    sigRow = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">' +
+      _sigBox('ลายเซ็นผู้จัดทำ', d.creator_signature, d.creator_name||r.sale_agent, d.creator_role||'Sale', '', false, false) +
+      _sigBox('ผู้ตรวจสอบ / ผู้อนุมัติ', d.signature, r.approved_by||USERS.sale_mgr.name, USERS.sale_mgr.role, r.approved_at ? fmtDT(r.approved_at) : '', true, r.status==='approved', r.status==='rejected') +
+    '</div>'
+  } else if (isHigh && !creatorIsMgr) {
+    // Sale จัดทำ >10%: 3 กล่อง
     sigRow = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">' +
       _sigBox('ลายเซ็นผู้จัดทำ', d.creator_signature, d.creator_name||r.sale_agent, d.creator_role||'Sale', '', false, false) +
       _sigBox('ผู้ตรวจสอบ / รับทราบ', d.mgr_signature, USERS.sale_mgr.name, USERS.sale_mgr.role, d.mgr_approved_at ? fmtDT(d.mgr_approved_at) : '', false, false) +
       _sigBox('ผู้อนุมัติ', d.signature, r.approved_by||ap.name, ap.role, r.approved_at ? fmtDT(r.approved_at) : '', true, r.status==='approved', r.status==='rejected') +
     '</div>'
   } else if (isHigh && creatorIsMgr) {
-    // Manager จัดทำเอง: 2 กล่อง — merge ผู้จัดทำ+ผู้ตรวจสอบ
+    // Manager จัดทำเอง >10%: 2 กล่อง merge
     sigRow = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">' +
       _sigBox('ผู้จัดทำ / ผู้ตรวจสอบ', d.creator_signature, d.creator_name||r.sale_agent, 'Sale Manager', '', false, false) +
       _sigBox('ผู้อนุมัติ', d.signature, r.approved_by||ap.name, ap.role, r.approved_at ? fmtDT(r.approved_at) : '', true, r.status==='approved', r.status==='rejected') +
     '</div>'
   } else {
-    // ≤10%: 2 กล่อง
+    // ≤10% ปกติ: 2 กล่อง
     sigRow = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">' +
       _sigBox('ลายเซ็นผู้จัดทำ', d.creator_signature, d.creator_name||r.sale_agent, d.creator_role||'Sale', '', false, false) +
       _sigBox('ผู้อนุมัติ', d.signature, r.approved_by||ap.name, ap.role, r.approved_at ? fmtDT(r.approved_at) : '', true, r.status==='approved', r.status==='rejected') +
@@ -1457,9 +1465,9 @@ function printDoc(id) {
     '</div>'
   }
 
-  // ─── ตรวจว่า Manager เป็นผู้จัดทำเองหรือไม่ ───
-  // ใช้ logic เดียวกับ buildDetailHtml: ตรวจจาก creator_role หรือ initial_status
-  // ตรวจ Manager จัดทำเองโดย priority (เหมือน buildDetailHtml)
+  // ─── ตรวจสอบ medicine + Manager-as-creator ───
+  var _pItems     = d.items||[]
+  var _isMedPrint = isMedicineCase(_pItems, r.final_price||0)
   var creatorIsManager = isHigh && (
     d.created_by_manager === true ||
     (d.creator_role && d.creator_role.toLowerCase().indexOf('manager') >= 0) ||
@@ -1468,21 +1476,27 @@ function printDoc(id) {
   )
 
   var sigSection = ''
-  if (isHigh && !creatorIsManager) {
-    // Sale จัดทำ → 3 กล่อง: ผู้จัดทำ(Sale) | ผู้ตรวจสอบ(Manager) | ผู้อนุมัติ(CMO)
+  if (_isMedPrint) {
+    // ยา → 2 กล่อง: ผู้จัดทำ | ผู้ตรวจสอบ/ผู้อนุมัติ (Sale Manager คนเดียว)
+    sigSection = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;">' +
+      pSigBox('ผู้จัดทำ', d.creator_signature, d.creator_name||r.sale_agent, d.creator_role||'Sale', false, false, false, '') +
+      pSigBox('ผู้ตรวจสอบ / ผู้อนุมัติ', d.signature, r.approved_by||USERS.sale_mgr.name, USERS.sale_mgr.role, true, isA, isR, r.approved_at?fmtDT(r.approved_at):'') +
+    '</div>'
+  } else if (isHigh && !creatorIsManager) {
+    // Sale จัดทำ >10% → 3 กล่อง
     sigSection = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">' +
       pSigBox('ผู้จัดทำ', d.creator_signature, d.creator_name||r.sale_agent, d.creator_role||'Sale', false, false, false, '') +
       pSigBox('ผู้ตรวจสอบ', d.mgr_signature, d.mgr_approved_by||USERS.sale_mgr.name, USERS.sale_mgr.role, false, false, false, d.mgr_approved_at?fmtDT(d.mgr_approved_at):'') +
       pSigBox('ผู้อนุมัติ', d.signature, r.approved_by||ap.name, ap.role, true, isA, isR, r.approved_at?fmtDT(r.approved_at):'') +
     '</div>'
   } else if (isHigh && creatorIsManager) {
-    // Manager จัดทำเอง → 2 กล่อง: ผู้จัดทำ/ผู้ตรวจสอบ(Manager) | ผู้อนุมัติ(CMO)
+    // Manager จัดทำเอง >10% → 2 กล่อง merge
     sigSection = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;">' +
       pSigBox('ผู้จัดทำ / ผู้ตรวจสอบ', d.creator_signature, d.creator_name||r.sale_agent, 'Sale Manager', false, false, false, '') +
       pSigBox('ผู้อนุมัติ', d.signature, r.approved_by||ap.name, ap.role, true, isA, isR, r.approved_at?fmtDT(r.approved_at):'') +
     '</div>'
   } else {
-    // ≤10% → 2 กล่อง: ผู้จัดทำ | ผู้อนุมัติ(Manager)
+    // ≤10% ปกติ → 2 กล่อง
     sigSection = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;">' +
       pSigBox('ผู้จัดทำ', d.creator_signature, d.creator_name||r.sale_agent, d.creator_role||'Sale', false, false, false, '') +
       pSigBox('ผู้อนุมัติ', d.signature, r.approved_by||ap.name, ap.role, true, isA, isR, r.approved_at?fmtDT(r.approved_at):'') +
