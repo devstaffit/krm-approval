@@ -416,8 +416,9 @@ const SUPABASE_KEY        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 const DISCOUNT_THRESHOLD  = 10
 // ── เงื่อนไขพิเศษ "ยา" — Manager อนุมัติได้เลย ไม่สนใจ % ──
 const MEDICINE_CONFIG = {
-  types:      ['medicine'],          // ประเภทที่เป็น "ยา" (ใช้ใน typeOpts)
-  max_amount: 5000,                  // วงเงินสูงสุดที่ Manager อนุมัติได้ (บาท) — แก้ได้ที่นี่
+  // ประเภทที่ Manager อนุมัติได้เลย ไม่สนใจ % — แก้เพิ่ม/ลบได้ที่นี่
+  types:      ['medicine', 'room_fee', 'health_check'],
+  max_amount: 5000,   // วงเงินสูงสุด (บาท) — แก้ได้ที่นี่
 }
 const USERS = {
   sale_mgr: { name:'นภา ชำนาญรบ',               role:'Sale Manager',            email:'chnabha2529@gmail.com', pin:'1234' },
@@ -537,9 +538,20 @@ function selType(t) {
 }
 
 // ── ITEMS TABLE ──
-const TYPE_LABELS = {procedure:'หัตถการ', room:'ห้องพัก', package:'แพ็กเกจ', medicine:'ยา', other:'อื่นๆ'}
-const typeOpts = ['procedure','room','package','medicine','other'].map(function(v){
-  return '<option value="'+v+'">'+ TYPE_LABELS[v] +'</option>'
+const TYPE_LABELS = {
+  procedure:    'หัตถการ',
+  room:         'ห้องพัก',
+  package:      'แพ็กเกจ',
+  medicine:     'ยา',
+  room_fee:     'ค่าห้อง',
+  health_check: 'ตรวจสุขภาพ',
+  other:        'อื่นๆ'
+}
+// ยา / ค่าห้อง / ตรวจสุขภาพ จะมี 💊 badge แสดงใน dropdown
+const typeOpts = ['procedure','room','package','medicine','room_fee','health_check','other'].map(function(v){
+  var isMgrType = MEDICINE_CONFIG.types.indexOf(v) >= 0
+  var prefix = isMgrType ? '⚡ ' : ''
+  return '<option value="'+v+'">'+ prefix + TYPE_LABELS[v] +'</option>'
 }).join('')
 
 function addItem() {
@@ -666,7 +678,8 @@ function updateCreatorBanner(pct, items, finalPrice) {
   var _isMed = isMedicineCase(items||[], finalPrice||0)
   if (_isMed) {
     banner.style.cssText = 'display:block;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:4px;background:#F0FFF4;border:1px solid #68D391;color:#276749;'
-    banner.innerHTML = '<strong>💊 รายการยา</strong> — Manager อนุมัติได้เลย (วงเงินไม่เกิน <strong>'+fmt(MEDICINE_CONFIG.max_amount)+' ฿</strong>)'
+    var _typeLabels = items.map(function(it){ return TYPE_LABELS[it.category]||it.category }).filter(function(v,i,a){return a.indexOf(v)===i}).join(', ')
+    banner.innerHTML = '<strong>⚡ '+(_typeLabels||'รายการพิเศษ')+'</strong> — Manager อนุมัติได้เลย (วงเงินไม่เกิน <strong>'+fmt(MEDICINE_CONFIG.max_amount)+' ฿</strong>)'
     return
   }
   if (pct > DISCOUNT_THRESHOLD) {
@@ -977,7 +990,7 @@ const DP = { mixed:'dp-mixed', room:'dp-room', procedure:'dp-procedure', gift:'d
 function buildDetailHtml(r) {
   var d = r.doc_data||{}, items = d.items||[], isGift = r.doc_type==='gift'
   var ap = getApprover(r)
-  var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
 
   var metaHtml = '<div class="dp-meta">' +
     '<div><strong>ลูกค้า</strong>'+r.customer_name+' · HN '+r.hn+'</div>' +
@@ -1111,7 +1124,8 @@ function renderList() {
     if (r.status === 'pending_mgr') {
       routeStyle = 'background:#FEF3C7;color:#92400E;'
       if (_isMed) {
-        routeText = '💊 ยา — Manager อนุมัติได้เลย (วงเงินไม่เกิน '+fmt(MEDICINE_CONFIG.max_amount)+' ฿)'
+        var _bLabels = (_items.map(function(it){return TYPE_LABELS[it.category]||it.category}).filter(function(v,i,a){return a.indexOf(v)===i}).join('/'))||'รายการพิเศษ'
+        routeText = '⚡ '+_bLabels+' — Manager อนุมัติได้เลย (วงเงินไม่เกิน '+fmt(MEDICINE_CONFIG.max_amount)+' ฿)'
       } else {
         routeText = (r.discount_pct||0) > DISCOUNT_THRESHOLD ? 'ขั้น 1/2: รอ Manager รับทราบ' : 'รอ Manager อนุมัติ'
       }
@@ -1398,7 +1412,7 @@ function printDoc(id) {
   var isA = r.status==='approved', isR = r.status==='rejected', isGift = r.doc_type==='gift'
   var isHigh = (r.discount_pct||0) > DISCOUNT_THRESHOLD
   var ap = getApprover(r)
-  var titles = { mixed:'ขออนุมัติส่วนลด', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
+  var titles = { mixed:'ขออนุมัติส่วนลดรายการ', room:'ขออนุมัติส่วนลดค่าห้องพัก', procedure:'ขออนุมัติส่วนลดค่าหัตถการ', package:'ขออนุมัติส่วนลดแพ็กเกจ', gift:'ขออนุมัติของแถม / สิทธิพิเศษ' }
   var LOGO_B64 = document.getElementById('hdr-logo') ? document.getElementById('hdr-logo').src.split(',')[1] : ''
 
   // ─── ตาราง ───
